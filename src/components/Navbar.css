@@ -1,0 +1,294 @@
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background-color: var(--white);
+  box-shadow: var(--shadow-sm);
+  z-index: 1000;
+  border-bottom: 2px solid var(--primary-orange-light);
+}
+
+.navbar-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--black);
+  transition: transform 0.3s ease;
+}
+
+.navbar-brand:hover {
+  transform: scale(1.05);
+}
+
+.brand-icon {
+  color: var(--primary-orange);
+  font-size: 1.5rem;
+}
+
+.brand-text {
+  color: var(--black);
+}
+
+.navbar-product-name {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.product-separator {
+  color: var(--gray-light);
+  font-size: 1.2rem;
+}
+
+.navbar-product-name .product-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--primary-orange);
+}
+
+.navbar-menu {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+/* Removed old navbar-user and navbar-email styles - now using hamburger menu */
+
+.navbar-auth {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-nav {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  border: none;
+  display: inline-block;
+}
+
+.btn-nav-primary {
+  background-color: var(--primary-orange);
+  color: var(--white);
+}
+
+.btn-nav-primary:hover {
+  background-color: var(--primary-orange-dark);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-nav-secondary {
+  background-color: transparent;
+  color: var(--primary-orange);
+  border: 2px solid var(--primary-orange);
+}
+
+.btn-nav-secondary:hover {
+  background-color: var(--primary-orange);
+  color: var(--white);
+  transform: translateY(-2px);
+}
+
+.btn-nav-logout {
+  background-color: var(--black);
+  color: var(--white);
+}
+
+.btn-nav-logout:hover {
+  background-color: var(--gray-dark);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Hamburger Menu Styles */
+.hamburger-container {
+  position: relative;
+}
+
+.hamburger-button {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  width: 30px;
+  height: 30px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  z-index: 1001;
+  transition: all 0.3s ease;
+}
+
+.hamburger-button:hover {
+  transform: scale(1.1);
+}
+
+.hamburger-line {
+  width: 100%;
+  height: 3px;
+  background-color: var(--primary-orange);
+  transition: all 0.3s ease;
+  transform-origin: center;
+  border-radius: 2px;
+}
+
+.hamburger-button.active .hamburger-line:nth-child(1) {
+  transform: rotate(45deg) translate(8px, 8px);
+}
+
+.hamburger-button.active .hamburger-line:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburger-button.active .hamburger-line:nth-child(3) {
+  transform: rotate(-45deg) translate(8px, -8px);
+}
+
+.hamburger-menu {
+  position: absolute;
+  top: 45px;
+  right: 0;
+  background-color: var(--white);
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--gray-lighter);
+  min-width: 250px;
+  z-index: 1000;
+  overflow: hidden;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  padding: 16px 20px;
+  text-decoration: none;
+  color: var(--black);
+  border: none;
+  background: none;
+  width: 100%;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  font-size: 15px;
+}
+
+.menu-item:hover {
+  background-color: var(--gray-lighter);
+}
+
+.menu-email {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  background-color: var(--primary-orange-light);
+  cursor: default;
+}
+
+.menu-email:hover {
+  background-color: var(--primary-orange-light);
+}
+
+.menu-label {
+  font-size: 12px;
+  color: var(--gray-dark);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.menu-value {
+  font-size: 14px;
+  color: var(--black);
+  font-weight: 600;
+}
+
+.menu-icon {
+  margin-right: 12px;
+  font-size: 18px;
+}
+
+.menu-link {
+  color: var(--primary-orange);
+  font-weight: 500;
+}
+
+.menu-link:hover {
+  background-color: rgba(217, 127, 90, 0.1);
+  color: var(--primary-orange);
+}
+
+.menu-button {
+  color: var(--red);
+  font-weight: 500;
+  border-top: 1px solid var(--gray-lighter);
+}
+
+.menu-button:hover {
+  background-color: var(--red-light);
+  color: var(--red-dark);
+}
+
+@media (max-width: 768px) {
+  .navbar-product-name {
+    display: none;
+  }
+  
+  .navbar-container {
+    padding: 12px 15px;
+  }
+  
+  .navbar-brand {
+    font-size: 1.25rem;
+  }
+  
+  .brand-icon {
+    font-size: 1.5rem;
+  }
+  
+  .btn-nav {
+    padding: 8px 16px;
+    font-size: 14px;
+  }
+
+  .hamburger-menu {
+    min-width: 200px;
+    right: -10px;
+  }
+
+  .menu-item {
+    padding: 14px 16px;
+    font-size: 14px;
+  }
+}

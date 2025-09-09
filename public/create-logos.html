@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Generate Mindful Logos</title>
+</head>
+<body>
+    <canvas id="canvas192" width="192" height="192" style="border:1px solid black;"></canvas>
+    <canvas id="canvas512" width="512" height="512" style="border:1px solid black;"></canvas>
+    
+    <script>
+        function createLogo(canvasId, size) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            
+            // Fill background with orange
+            ctx.fillStyle = '#D97F5A';
+            ctx.beginPath();
+            ctx.arc(size/2, size/2, size/2 - 10, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            // Draw white M
+            ctx.fillStyle = 'white';
+            ctx.font = `bold ${size * 0.4}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('M', size/2, size/2);
+        }
+        
+        createLogo('canvas192', 192);
+        createLogo('canvas512', 512);
+        
+        // Create download links
+        setTimeout(() => {
+            const canvas192 = document.getElementById('canvas192');
+            const canvas512 = document.getElementById('canvas512');
+            
+            const link192 = document.createElement('a');
+            link192.download = 'logo192.png';
+            link192.href = canvas192.toDataURL();
+            link192.innerHTML = 'Download 192x192';
+            document.body.appendChild(link192);
+            
+            const link512 = document.createElement('a');
+            link512.download = 'logo512.png';
+            link512.href = canvas512.toDataURL();
+            link512.innerHTML = 'Download 512x512';
+            document.body.appendChild(link512);
+        }, 100);
+    </script>
+</body>
+</html>
