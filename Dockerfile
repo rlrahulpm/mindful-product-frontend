@@ -19,8 +19,10 @@ RUN npm run build
 # Production stage with nginx
 FROM nginx:alpine
 
-# Copy custom nginx config if needed
-COPY nginx.conf /etc/nginx/conf.d/default.conf 2>/dev/null || echo "No custom nginx config"
+# Copy custom nginx config if it exists
+# Note: If nginx.conf doesn't exist, docker build will fail
+# Remove this line if you don't have a custom nginx config
+# COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Copy built app from builder stage
 COPY --from=builder /app/build /usr/share/nginx/html
