@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom';
 import { useProduct } from '../hooks/useProduct';
 import { API_BASE_URL } from '../config';
-import './QuarterlyRoadmap.css';
+import './RoadmapPlanner.css';
 
 interface RoadmapItem {
   epicId: string;
@@ -21,7 +21,7 @@ interface RoadmapItem {
   endDate?: string;
 }
 
-interface QuarterlyRoadmapData {
+interface RoadmapPlannerData {
   id?: number;
   productId: number;
   year: number;
@@ -58,12 +58,12 @@ const getQuarterEndDate = (year: number, quarter: number): string => {
          String(date.getDate()).padStart(2, '0');
 };
 
-const QuarterlyRoadmap: React.FC = () => {
+const RoadmapPlanner: React.FC = () => {
   const { productSlug } = useParams<{ productSlug: string }>();
   const navigate = useNavigate();
   const { product, loading: productLoading, error: productError } = useProduct(productSlug);
   
-  const [roadmapData, setRoadmapData] = useState<QuarterlyRoadmapData | null>(null);
+  const [roadmapData, setRoadmapData] = useState<RoadmapPlannerData | null>(null);
   const [availableEpics, setAvailableEpics] = useState<Epic[]>([]);
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
   const [selectedQuarter, setSelectedQuarter] = useState<number>(Math.ceil((new Date().getMonth() + 1) / 3));
@@ -728,7 +728,7 @@ const QuarterlyRoadmap: React.FC = () => {
 
   return (
     <div className="roadmap-container">
-      <div className="quarterly-roadmap-page-header">
+      <div className="roadmap-planner-page-header">
         <div className="header-top-row">
           <div className="header-left">
             <button 
@@ -738,7 +738,7 @@ const QuarterlyRoadmap: React.FC = () => {
             >
               <span className="material-icons">arrow_back</span>
             </button>
-            <h1 className="quarterly-roadmap-page-title">Roadmap Planner</h1>
+            <h1 className="roadmap-planner-page-title">Roadmap Planner</h1>
           </div>
           
           <div className="quarter-selector">
@@ -1194,4 +1194,4 @@ const QuarterlyRoadmap: React.FC = () => {
   );
 };
 
-export default React.memo(QuarterlyRoadmap);
+export default React.memo(RoadmapPlanner);

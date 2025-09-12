@@ -1,10 +1,13 @@
 import axios from 'axios';
 import { shouldRefreshToken, isTokenExpired } from '../utils/jwtUtils';
+import { logger } from '../utils/logger';
+import { config } from '../config';
 
-const API_BASE_URL = 'http://localhost:8080/api';
+const API_BASE_URL = config.api.baseUrl;
 
 const api = axios.create({
   baseURL: API_BASE_URL,
+  timeout: config.api.timeout,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -30,6 +33,11 @@ const processQueue = (error: any, token: string | null = null) => {
 
 api.interceptors.request.use(
   async (config) => {
+    const startTime = performance.now();
+    (config as any).metadata = { startTime };
+    
+    logger.apiRequest(config.method?.toUpperCase() || 'GET', config.url || '');
+    
     // Skip token refresh for auth endpoints
     if (config.url?.includes('/auth/')) {
       const token = localStorage.getItem('token');
@@ -102,8 +110,26 @@ api.interceptors.request.use(
 );
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    const endTime = performance.now();
+    const startTime = (response.config as any)?.metadata?.startTime;
+    const duration = startTime ? endTime - startTime : undefined;
+    
+    logger.apiResponse(
+      response.config?.method?.toUpperCase() || 'GET',
+      response.config?.url || '',
+      response.status,
+      duration
+    );
+    
+    return response;
+  },
   async (error) => {
+    logger.apiError(
+      error.config?.method?.toUpperCase() || 'GET',
+      error.config?.url || '',
+      error
+    );
     const originalRequest = error.config;
 
     if (error.response?.status === 401 && !originalRequest._retry) {

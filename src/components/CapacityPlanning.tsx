@@ -188,7 +188,29 @@ const CapacityPlanning: React.FC = () => {
           epicGroups[effort.epicId].efforts.push(effort);
         });
         
-        setEpics(Object.values(epicGroups));
+        // Ensure all epics have efforts for all teams
+        const epicsWithAllTeams = Object.values(epicGroups).map(epic => {
+          const updatedEfforts = [...epic.efforts];
+          
+          // Add missing team efforts
+          teams.forEach(team => {
+            if (!updatedEfforts.find(e => e.teamId === team.id)) {
+              updatedEfforts.push({
+                id: 0,
+                epicId: epic.epicId,
+                epicName: epic.epicName,
+                teamId: team.id,
+                teamName: team.name,
+                effortDays: 0,
+                notes: ''
+              });
+            }
+          });
+          
+          return { ...epic, efforts: updatedEfforts };
+        });
+        
+        setEpics(epicsWithAllTeams);
       } else if (response.status === 404) {
         // No capacity plan exists for this quarter yet
         setCapacityPlan({
@@ -229,8 +251,24 @@ const CapacityPlanning: React.FC = () => {
       if (response.ok) {
         setNewTeam({ name: '', description: '' });
         setShowTeamModal(false);
+        const newTeamData = await response.json();
         await loadTeams();
-        await loadCapacityPlan(); // Reload to get updated epic efforts
+        
+        // Add the new team to all existing epics
+        setEpics(prevEpics => 
+          prevEpics.map(epic => ({
+            ...epic,
+            efforts: [...epic.efforts, {
+              id: 0,
+              epicId: epic.epicId,
+              epicName: epic.epicName,
+              teamId: newTeamData.id,
+              teamName: newTeamData.name,
+              effortDays: 0,
+              notes: ''
+            }]
+          }))
+        );
       } else {
         const errorText = await response.text();
         throw new Error(errorText || 'Failed to add team');
@@ -266,14 +304,37 @@ const CapacityPlanning: React.FC = () => {
     setEpics(prevEpics => 
       prevEpics.map(epic => {
         if (epic.epicId === epicId) {
-          return {
-            ...epic,
-            efforts: epic.efforts.map(effort => 
-              effort.teamId === teamId 
-                ? { ...effort, effortDays }
-                : effort
-            )
-          };
+          // Check if effort exists for this team
+          const existingEffortIndex = epic.efforts.findIndex(e => e.teamId === teamId);
+          
+          if (existingEffortIndex >= 0) {
+            // Update existing effort
+            return {
+              ...epic,
+              efforts: epic.efforts.map(effort => 
+                effort.teamId === teamId 
+                  ? { ...effort, effortDays }
+                  : effort
+              )
+            };
+          } else {
+            // Create new effort entry for this team
+            const team = teams.find(t => t.id === teamId);
+            if (team) {
+              return {
+                ...epic,
+                efforts: [...epic.efforts, {
+                  id: 0, // Will be assigned by backend
+                  epicId: epicId,
+                  epicName: epic.epicName,
+                  teamId: teamId,
+                  teamName: team.name,
+                  effortDays: effortDays,
+                  notes: ''
+                }]
+              };
+            }
+          }
         }
         return epic;
       })

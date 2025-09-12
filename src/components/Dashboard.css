@@ -99,21 +99,28 @@
   transform: scale(1.1);
 }
 
+.modal-body {
+  padding: 0 24px;
+}
+
 .modal-form {
-  padding: 0 24px 24px 24px;
+  margin: 0;
 }
 
 .modal-actions {
   display: flex;
   gap: 12px;
   justify-content: flex-end;
-  margin-top: 32px;
-  padding-top: 20px;
-  border-top: 2px solid #E5E5E5;
+  padding: 20px 24px 24px 24px;
+  margin-top: 20px;
+  border-top: 1px solid #E5E5E5;
 }
 
 .modal-actions .btn {
   min-width: 100px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 600;
 }
 
 @keyframes modalFadeIn {
@@ -298,12 +305,17 @@
     font-size: 1.2rem;
   }
   
+  .modal-body {
+    padding: 0 20px;
+  }
+  
   .modal-form {
-    padding: 0 20px 20px 20px;
+    margin: 0;
   }
   
   .modal-actions {
     flex-direction: column;
+    padding: 16px 20px 20px 20px;
   }
   
   .modal-actions .btn {

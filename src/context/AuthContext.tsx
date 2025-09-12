@@ -1,8 +1,10 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useRef, useCallback, useMemo } from 'react';
 import { User, AuthContextType } from '../types/auth';
 import { authService } from '../services/authService';
 import { productService } from '../services/productService';
 import { shouldRefreshToken, isTokenExpired } from '../utils/jwtUtils';
+import { logger } from '../utils/logger';
+import { withErrorHandling } from '../utils/errorHandler';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -84,13 +86,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = useCallback(async (email: string, password: string) => {
     setIsLoading(true);
     try {
+      logger.userAction('login_attempt', { email: email.substring(0, 3) + '***' });
+      
       // Clear product cache when switching users
       productService.clearCache();
       
-      const response = await authService.login({ email, password });
+      const response = await withErrorHandling(
+        () => authService.login({ email, password }),
+        'user_login'
+      );
+      
       const userData = { id: response.userId, email: response.email, isSuperadmin: response.isSuperadmin };
       
       authService.setAuthToken(response.token);
@@ -100,15 +108,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(userData);
       
       scheduleTokenRefresh();
+      logger.userAction('login_success', { userId: response.userId });
     } catch (error) {
+      logger.error('Login failed', error as Error, { email: email.substring(0, 3) + '***' });
       throw error;
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
 
-  const logout = () => {
+  const logout = useCallback(() => {
+    logger.userAction('logout', { userId: user?.id });
+    
     if (refreshTimeoutRef.current) {
       clearTimeout(refreshTimeoutRef.current);
       refreshTimeoutRef.current = null;
@@ -120,16 +132,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     authService.removeAuthToken();
     setToken(null);
     setUser(null);
-    authService.logout().catch(() => {});
-  };
+    authService.logout().catch((error) => {
+      logger.warn('Logout request failed', { error: error.message });
+    });
+  }, [user?.id]);
 
-  const value: AuthContextType = {
+  const value: AuthContextType = useMemo(() => ({
     user,
     token,
     login,
     logout,
     isLoading,
-  };
+  }), [user, token, login, logout, isLoading]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
