@@ -19,6 +19,7 @@ interface RoadmapItem {
   effortRating?: number; // Auto-filled from capacity planning
   startDate?: string;
   endDate?: string;
+  published?: boolean; // Track published status
 }
 
 interface RoadmapPlannerData {
@@ -82,6 +83,7 @@ const RoadmapPlanner: React.FC = () => {
   const [selectedInitiativeFilter, setSelectedInitiativeFilter] = useState('');
   const [selectedTrackFilter, setSelectedTrackFilter] = useState('');
   const [assignedEpicIds, setAssignedEpicIds] = useState<Set<string>>(new Set());
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   const loadRoadmapData = async () => {
     
@@ -110,6 +112,14 @@ const RoadmapPlanner: React.FC = () => {
 
       if (response.ok) {
         const data = await response.json();
+        // Ensure all items have dates (use quarter defaults if missing from backend)
+        if (data.roadmapItems) {
+          data.roadmapItems = data.roadmapItems.map((item: RoadmapItem) => ({
+            ...item,
+            startDate: item.startDate || getQuarterStartDate(selectedYear, selectedQuarter),
+            endDate: item.endDate || getQuarterEndDate(selectedYear, selectedQuarter)
+          }));
+        }
         setRoadmapData(data);
         const epicIds = data.roadmapItems?.map((item: RoadmapItem) => item.epicId) || [];
         setSelectedEpics(new Set(epicIds));
@@ -206,10 +216,19 @@ const RoadmapPlanner: React.FC = () => {
       setLoading(true);
       
       let roadmapItems: RoadmapItem[] = [];
-      
+
       if (isEditMode) {
         // In edit mode, save the current roadmapData items
-        roadmapItems = roadmapData?.roadmapItems || [];
+        // Ensure all items have dates (use quarter defaults if missing)
+        roadmapItems = (roadmapData?.roadmapItems || []).map(item => {
+          const { published, ...itemWithoutPublished } = item;
+          return {
+            ...itemWithoutPublished,
+            startDate: item.startDate || getQuarterStartDate(selectedYear, selectedQuarter),
+            endDate: item.endDate || getQuarterEndDate(selectedYear, selectedQuarter)
+            // Don't send published field - let backend manage it
+          };
+        });
       } else {
         // When adding/removing epics from the modal
         // Only keep epics that are selected in the modal
@@ -246,7 +265,8 @@ const RoadmapPlanner: React.FC = () => {
               riceScore,
               effortRating: 1,
               startDate: getQuarterStartDate(selectedYear, selectedQuarter),
-              endDate: getQuarterEndDate(selectedYear, selectedQuarter)
+              endDate: getQuarterEndDate(selectedYear, selectedQuarter),
+              published: false // New items start as unpublished
             };
           }
         });
@@ -272,6 +292,7 @@ const RoadmapPlanner: React.FC = () => {
 
       if (response.ok) {
         setInlineError(''); // Clear any error messages on successful save
+        setHasUnsavedChanges(false); // Clear unsaved changes flag
         await loadRoadmapData();
         if (isEditMode) {
           setIsEditMode(false);
@@ -296,7 +317,7 @@ const RoadmapPlanner: React.FC = () => {
       setInlineError('No items to publish in this quarter');
       return;
     }
-    
+
     setShowPublishModal(true);
   };
 
@@ -308,11 +329,21 @@ const RoadmapPlanner: React.FC = () => {
     }
 
     publishRequestRef.current.add(publishKey);
-    
+
     try {
       setIsPublishing(true);
       setError('');
       setInlineError('');
+
+      // Exit edit mode if needed
+      if (isEditMode) {
+        setIsEditMode(false);
+        setHasUnsavedChanges(false);
+      }
+
+      // Get ALL epic IDs to publish - no filtering, publish everything
+      const epicIdsToPublish = (roadmapData?.roadmapItems || [])
+        .map(item => item.epicId);
 
       const response = await fetch(
         `${API_BASE_URL}/v2/products/${product?.productId}/roadmap/${selectedYear}/${selectedQuarter}/publish`,
@@ -321,7 +352,10 @@ const RoadmapPlanner: React.FC = () => {
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
+          },
+          body: JSON.stringify({
+            epicIds: epicIdsToPublish
+          })
         }
       );
 
@@ -412,14 +446,10 @@ const RoadmapPlanner: React.FC = () => {
       setShowPublishModal(false);
     };
 
-    // Count items by status
-    const committedCount = roadmapData?.roadmapItems?.filter(item => 
-      ['Committed', 'In-Progress', 'Complete', 'Carried Over'].includes(item.status)
-    ).length || 0;
-    
-    const proposedCount = roadmapData?.roadmapItems?.filter(item => 
-      item.status === 'Proposed'
-    ).length || 0;
+    // Count ALL items - no filtering
+    const committedCount = roadmapData?.roadmapItems?.length || 0;
+
+    const proposedCount = 0; // We're publishing everything, so no "proposed only" count
 
     return (
       <div className="modal-overlay" onClick={handleCancel}>
@@ -453,7 +483,7 @@ const RoadmapPlanner: React.FC = () => {
               </div>
               
               <p className="warning-text">
-                Published items (Committed, In-Progress, Complete, Carried Over) will appear in the Roadmap Visualization. 
+                Published items (To-Do, Committed, In-Progress, Complete, Carried Over) will appear in the Roadmap Visualization.
                 Proposed items will be removed from the planner and remain in the backlog only.
               </p>
             </div>
@@ -481,8 +511,12 @@ const RoadmapPlanner: React.FC = () => {
 
   const updateRoadmapItem = async (epicId: string, field: keyof RoadmapItem, value: string | number) => {
     if (!roadmapData) return;
-    
-    
+
+    // Mark as having unsaved changes when in edit mode
+    if (isEditMode) {
+      setHasUnsavedChanges(true);
+    }
+
     // For effortRating, use the specific endpoint (only in view mode since it's auto-filled)
     if (field === 'effortRating' && !isEditMode) {
       try {
@@ -547,8 +581,9 @@ const RoadmapPlanner: React.FC = () => {
     
     setRoadmapData(updatedRoadmapData);
     
-    // Auto-save if NOT in edit mode, OR if updating dates/status/priority (which should always be saved immediately)
-    const shouldAutoSave = !isEditMode || ['startDate', 'endDate', 'status', 'priority'].includes(field);
+    // Auto-save only if NOT in edit mode
+    // In edit mode, changes should be saved explicitly to avoid issues with publishing
+    const shouldAutoSave = !isEditMode;
     
     if (shouldAutoSave) {
       
@@ -562,7 +597,15 @@ const RoadmapPlanner: React.FC = () => {
           body: JSON.stringify({
             year: selectedYear,
             quarter: selectedQuarter,
-            roadmapItems: updatedItems
+            roadmapItems: updatedItems.map(item => {
+              const { published, ...itemWithoutPublished } = item;
+              return {
+                ...itemWithoutPublished,
+                startDate: item.startDate || getQuarterStartDate(selectedYear, selectedQuarter),
+                endDate: item.endDate || getQuarterEndDate(selectedYear, selectedQuarter)
+                // DON'T send published field - let backend maintain it
+              };
+            })
           })
         });
 
@@ -792,6 +835,7 @@ const RoadmapPlanner: React.FC = () => {
                   <button
                     onClick={() => {
                       setIsEditMode(false);
+                      setHasUnsavedChanges(false); // Reset unsaved changes flag
                       loadRoadmapData(); // Reload to discard unsaved changes
                     }}
                     className="cancel-edit-btn icon-only"
@@ -866,6 +910,15 @@ const RoadmapPlanner: React.FC = () => {
             <div className="edit-mode-info">
               <span className="material-icons">edit</span>
               <span>Edit Mode - You can modify scores, status, and priority</span>
+              {hasUnsavedChanges && (
+                <span className="unsaved-indicator" style={{
+                  marginLeft: '10px',
+                  color: '#e74c3c',
+                  fontWeight: 'bold'
+                }}>
+                  (Unsaved changes)
+                </span>
+              )}
             </div>
           </div>
         )}
