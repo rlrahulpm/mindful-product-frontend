@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useProduct } from '../hooks/useProduct';
+import { API_BASE_URL } from '../config';
 import './ProductBacklog.css';
 
 interface ProductBacklogData {
@@ -193,7 +194,7 @@ const ProductBacklog: React.FC = () => {
 
   const loadProductBacklogData = async (productId: number): Promise<ProductBacklogData | null> => {
     try {
-      const response = await fetch(`http://localhost:8080/api/v3/products/${productId}/backlog`, {
+      const response = await fetch(`${API_BASE_URL}/v3/products/${productId}/backlog`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -213,7 +214,7 @@ const ProductBacklog: React.FC = () => {
 
   const loadProductHypothesisData = async (productId: number) => {
     try {
-      const response = await fetch(`http://localhost:8080/api/products/${productId}/hypothesis`, {
+      const response = await fetch(`${API_BASE_URL}/products/${productId}/hypothesis`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -361,7 +362,7 @@ const ProductBacklog: React.FC = () => {
       );
 
       // Save to backend
-      const response = await fetch(`http://localhost:8080/api/v3/products/${product?.productId}/backlog`, {
+      const response = await fetch(`${API_BASE_URL}/v3/products/${product?.productId}/backlog`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -428,7 +429,7 @@ const ProductBacklog: React.FC = () => {
         }
         
         // Save to backend
-        const response = await fetch(`http://localhost:8080/api/v3/products/${product?.productId}/backlog`, {
+        const response = await fetch(`${API_BASE_URL}/v3/products/${product?.productId}/backlog`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -601,7 +602,7 @@ const ProductBacklog: React.FC = () => {
       setError('');
       setSuccessMessage('');
 
-      const response = await fetch(`http://localhost:8080/api/v3/products/${product?.productId}/backlog`, {
+      const response = await fetch(`${API_BASE_URL}/v3/products/${product?.productId}/backlog`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -822,7 +823,7 @@ const ProductBacklog: React.FC = () => {
       const updatedEpics = epics.filter(epic => epic.id !== epicId);
       
       console.log(`Making API call for ${requestId}`);
-      const response = await fetch(`http://localhost:8080/api/v3/products/${product?.productId}/backlog`, {
+      const response = await fetch(`${API_BASE_URL}/v3/products/${product?.productId}/backlog`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
