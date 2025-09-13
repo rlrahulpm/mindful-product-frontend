@@ -819,24 +819,19 @@ const ProductBacklog: React.FC = () => {
       setError('');
       setSuccessMessage('');
 
-      // Save to backend with updated epics array (without the deleted epic)
-      const updatedEpics = epics.filter(epic => epic.id !== epicId);
-      
-      console.log(`Making API call for ${requestId}`);
-      const response = await fetch(`${API_BASE_URL}/v3/products/${product?.productId}/backlog`, {
-        method: 'POST',
+      // Call DELETE endpoint for the specific epic
+      console.log(`Making DELETE API call for ${requestId}`);
+      const response = await fetch(`${API_BASE_URL}/v3/products/${product?.productId}/backlog/${epicId}`, {
+        method: 'DELETE',
         headers: {
-          'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'X-Request-Id': requestId
-        },
-        body: JSON.stringify({
-          epics: JSON.stringify(updatedEpics)
-        })
+        }
       });
 
       if (response.ok) {
-        // Deletion successful - update UI immediately
+        // Deletion successful - update UI immediately by removing the deleted epic
+        const updatedEpics = epics.filter(epic => epic.id !== epicId);
         setEpics(updatedEpics);
         setSuccessMessage('Epic deleted successfully!');
         
