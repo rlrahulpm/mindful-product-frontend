@@ -341,59 +341,6 @@
   justify-content: flex-end;
 }
 
-/* Edit Button - Same design as delete but with orange colors */
-.table-action-btn.edit-btn {
-  background: none;
-  border: none;
-  color: var(--gray-medium);
-  cursor: pointer;
-  padding: 8px;
-  border-radius: 6px;
-  transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  position: relative;
-  overflow: hidden;
-  margin: 0 4px;
-}
-
-.table-action-btn.edit-btn:hover {
-  color: var(--primary-orange) !important;
-  background: none !important;
-  transform: none !important;
-  box-shadow: none !important;
-}
-
-.table-action-btn.edit-btn:active {
-  transform: translateY(0);
-  box-shadow: 0 1px 3px rgba(217, 127, 90, 0.15);
-}
-
-.table-action-btn.edit-btn:disabled {
-  cursor: not-allowed;
-  opacity: 0.5;
-  background: none;
-  transform: none;
-  box-shadow: none;
-}
-
-.table-action-btn.edit-btn:disabled::before {
-  display: none;
-}
-
-.table-action-btn.edit-btn .material-icons {
-  font-size: 18px;
-  transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
-  position: relative;
-  z-index: 2;
-}
-
-.table-action-btn.edit-btn:hover .material-icons {
-  transform: none;
-}
 
 /* Delete Button - Exact copy from ProductBacklog delete-epic-btn */
 .table-action-btn.delete-btn {
@@ -636,18 +583,6 @@
   font-size: 18px;
 }
 
-.edit-btn {
-  background: #f1f5f9;
-  color: #475569;
-  border: 2px solid #94a3b8;
-}
-
-.edit-btn:hover {
-  background: #64748b !important;
-  color: white !important;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(100, 116, 139, 0.3);
-}
 
 .delete-btn {
   background: rgba(239, 68, 68, 0.1);

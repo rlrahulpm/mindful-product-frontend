@@ -61,6 +61,7 @@ const MarketCompetition: React.FC = () => {
     }
   }, [product]);
 
+
   const loadMarketData = async () => {
     if (!product?.productId) return;
     
@@ -271,14 +272,16 @@ const MarketCompetition: React.FC = () => {
           </div>
 
           {!loading && !isEditMode && (
-            <button
-              onClick={() => setIsEditMode(true)}
-              className="edit-mode-btn"
-              aria-label="Edit market analysis"
-            >
-              <span className="material-icons">edit</span>
-              Edit
-            </button>
+            <div className="header-actions">
+              <button
+                onClick={() => setIsEditMode(true)}
+                className="edit-mode-btn"
+                aria-label="Edit market analysis"
+              >
+                <span className="material-icons">edit</span>
+                Edit
+              </button>
+            </div>
           )}
 
           {!loading && isEditMode && (

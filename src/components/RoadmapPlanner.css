@@ -151,8 +151,7 @@
   gap: 12px;
 }
 
-.add-epic-btn,
-.edit-mode-btn {
+.add-epic-btn {
   background: rgba(217, 127, 90, 0.1);
   color: var(--primary-orange);
   border: none;
@@ -169,8 +168,7 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
 }
 
-.add-epic-btn:hover,
-.edit-mode-btn:hover {
+.add-epic-btn:hover {
   background: rgba(217, 127, 90, 0.2);
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.06);
@@ -188,21 +186,6 @@
   align-items: center;
 }
 
-.cancel-edit-btn,
-.save-btn {
-  padding: 12px 24px;
-  border-radius: 12px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
-  border: none;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  height: 44px;
-}
-
 .cancel-edit-btn.icon-only,
 .save-btn.icon-only {
   padding: 0;
@@ -217,16 +200,6 @@
 .cancel-edit-btn.icon-only .material-icons,
 .save-btn.icon-only .material-icons {
   font-size: 18px;
-}
-
-.cancel-edit-btn {
-  background: rgba(0, 0, 0, 0.05);
-  color: var(--gray-dark);
-}
-
-.cancel-edit-btn:hover {
-  background: rgba(0, 0, 0, 0.1);
-  transform: translateY(-1px);
 }
 
 .save-btn {
@@ -433,29 +406,6 @@
 
 .edit-mode-info .material-icons {
   font-size: 20px;
-}
-
-.add-epic-btn {
-  background: rgba(217, 127, 90, 0.1);
-  color: var(--primary-orange);
-  border: none;
-  padding: 12px 24px;
-  border-radius: 12px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  height: 44px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
-}
-
-.add-epic-btn:hover {
-  background: rgba(217, 127, 90, 0.2);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.06);
 }
 
 .roadmap-items {

@@ -147,7 +147,6 @@ const AdminDashboard: React.FC = () => {
       // Clear success message after 3 seconds
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (err: any) {
-      console.error('Failed to save role:', err);
       const errorMessage = err.response?.data?.message || err.message || 'Failed to save role';
       setModalError(errorMessage);
     }
@@ -165,7 +164,6 @@ const AdminDashboard: React.FC = () => {
       // Clear success message after 3 seconds
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (err: any) {
-      console.error('Failed to create user:', err);
       const errorMessage = err.response?.data?.message || err.message || 'Failed to create user';
       setError(errorMessage);
       setTimeout(() => setError(''), 5000);
@@ -184,7 +182,6 @@ const AdminDashboard: React.FC = () => {
       setSuccessMessage('Role deleted successfully!');
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (err: any) {
-      console.error('Failed to delete role:', err);
       const errorMessage = err.response?.data?.message || err.message || 'Failed to delete role';
       setError(errorMessage);
       setTimeout(() => setError(''), 5000);
@@ -206,7 +203,6 @@ const AdminDashboard: React.FC = () => {
       setSuccessMessage('User updated successfully!');
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (err: any) {
-      console.error('Failed to update user:', err);
       const errorMessage = err.response?.data?.message || err.message || 'Failed to update user';
       setError(errorMessage);
       setTimeout(() => setError(''), 5000);
@@ -225,7 +221,6 @@ const AdminDashboard: React.FC = () => {
       setSuccessMessage('User deleted successfully!');
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (err: any) {
-      console.error('Failed to delete user:', err);
       const errorMessage = err.response?.data?.message || err.message || 'Failed to delete user';
       setError(errorMessage);
       setTimeout(() => setError(''), 5000);

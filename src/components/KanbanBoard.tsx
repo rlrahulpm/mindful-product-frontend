@@ -62,7 +62,6 @@ const KanbanBoard: React.FC = () => {
         setProduct(data);
       }
     } catch (err) {
-      console.error('Failed to load product:', err);
     }
   }, [productId]);
 
@@ -88,7 +87,6 @@ const KanbanBoard: React.FC = () => {
         setError('Failed to load kanban items');
       }
     } catch (err) {
-      console.error('Failed to load kanban items:', err);
       setError('Failed to load kanban items');
     } finally {
       setLoading(false);
@@ -136,7 +134,6 @@ const KanbanBoard: React.FC = () => {
         setError('Failed to update item');
       }
     } catch (err) {
-      console.error('Failed to update item:', err);
       setError('Failed to update item');
     }
   };
@@ -163,7 +160,6 @@ const KanbanBoard: React.FC = () => {
         setError('Failed to delete item');
       }
     } catch (err) {
-      console.error('Failed to delete item:', err);
       setError('Failed to delete item');
     }
   };
@@ -248,7 +244,6 @@ const KanbanBoard: React.FC = () => {
         await loadKanbanItems();
       }
     } catch (err) {
-      console.error('Failed to move item:', err);
       loadKanbanItems();
       setError('Failed to move item');
     }

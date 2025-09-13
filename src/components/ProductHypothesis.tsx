@@ -256,7 +256,6 @@ const ProductHypothesis: React.FC = () => {
       }
     } catch (err: any) {
       setError('Failed to save product hypothesis data. Please try again.');
-      console.error(err);
     } finally {
       setSaving(false);
     }

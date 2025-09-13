@@ -225,6 +225,29 @@ button {
 .p-4 { padding: 2rem; }
 .p-5 { padding: 3rem; }
 
+
+.cancel-edit-btn {
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--gray-dark);
+  border: none;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  text-decoration: none;
+}
+
+.cancel-edit-btn:hover {
+  background: rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
 @media (max-width: 768px) {
   h1 { font-size: 1.5rem; }
   h2 { font-size: 1.3rem; }
@@ -232,8 +255,207 @@ button {
   h4 { font-size: 1.1rem; }
   h5 { font-size: 1rem; }
   h6 { font-size: 1rem; }
-  
+
   .container {
     padding: 0 15px;
   }
+}
+
+/* ABSOLUTE FINAL OVERRIDE - Edit Button Styles - NUCLEAR OPTION */
+button.edit-mode-btn,
+.edit-mode-btn,
+*[class*="edit-mode-btn"],
+button[class*="edit-mode-btn"],
+*[class~="edit-mode-btn"] {
+  background: rgba(217, 127, 90, 0.1) !important;
+  background-color: rgba(217, 127, 90, 0.1) !important;
+  color: var(--primary-orange) !important;
+  border: 0 !important;
+  border: none !important;
+  border-width: 0 !important;
+  border-style: none !important;
+  border-color: transparent !important;
+  outline: none !important;
+  padding: 12px 24px !important;
+  border-radius: 12px !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  height: 44px !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02) !important;
+  text-decoration: none !important;
+}
+
+button.edit-mode-btn:hover,
+.edit-mode-btn:hover,
+*[class*="edit-mode-btn"]:hover {
+  background: rgba(217, 127, 90, 0.2) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.06) !important;
+  border: none !important;
+  border-width: 0 !important;
+}
+
+/* NUCLEAR OPTION - MAXIMUM SPECIFICITY OVERRIDE */
+html body div .market-competition-container .header-actions button.edit-mode-btn.force-consistent-edit-button-unique-12345,
+html body .market-competition-container button.edit-mode-btn,
+html body button.edit-mode-btn.edit-mode-btn.edit-mode-btn.edit-mode-btn,
+html body .edit-mode-btn.edit-mode-btn.edit-mode-btn.edit-mode-btn.edit-mode-btn {
+  background: rgba(217, 127, 90, 0.1) !important;
+  background-color: rgba(217, 127, 90, 0.1) !important;
+  color: var(--primary-orange) !important;
+  border: 0px none transparent !important;
+  border-style: none !important;
+  border-width: 0px !important;
+  border-color: transparent !important;
+  border-top: 0px none transparent !important;
+  border-right: 0px none transparent !important;
+  border-bottom: 0px none transparent !important;
+  border-left: 0px none transparent !important;
+  border-radius: 12px !important;
+  border-top-left-radius: 12px !important;
+  border-top-right-radius: 12px !important;
+  border-bottom-left-radius: 12px !important;
+  border-bottom-right-radius: 12px !important;
+  outline: none !important;
+  padding: 12px 24px !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  height: 44px !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02) !important;
+  text-decoration: none !important;
+}
+
+html body div .market-competition-container .header-actions button.edit-mode-btn.force-consistent-edit-button-unique-12345:hover,
+html body .market-competition-container button.edit-mode-btn:hover,
+html body button.edit-mode-btn.edit-mode-btn.edit-mode-btn.edit-mode-btn:hover,
+html body .edit-mode-btn.edit-mode-btn.edit-mode-btn.edit-mode-btn.edit-mode-btn:hover {
+  background: rgba(217, 127, 90, 0.2) !important;
+  background-color: rgba(217, 127, 90, 0.2) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.06) !important;
+  border: 0px none transparent !important;
+  border-radius: 12px !important;
+  border-top-left-radius: 12px !important;
+  border-top-right-radius: 12px !important;
+  border-bottom-left-radius: 12px !important;
+  border-bottom-right-radius: 12px !important;
+}
+
+/* ULTIMATE OVERRIDE - DEFEAT ANY POSSIBLE RULE */
+html body .edit-mode-btn,
+html body button.edit-mode-btn,
+html body .edit-mode-btn.edit-mode-btn,
+html body .edit-mode-btn.edit-mode-btn.edit-mode-btn,
+html body .cancel-edit-btn.edit-mode-btn,
+html body .edit-mode-btn.cancel-edit-btn {
+  background: rgba(217, 127, 90, 0.1) !important;
+  background-color: rgba(217, 127, 90, 0.1) !important;
+  color: var(--primary-orange) !important;
+  border: 0 !important;
+  border: none !important;
+  border-width: 0 !important;
+  border-style: none !important;
+  border-color: transparent !important;
+  outline: none !important;
+  padding: 12px 24px !important;
+  border-radius: 12px !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  height: 44px !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02) !important;
+  text-decoration: none !important;
+}
+
+html body .edit-mode-btn:hover,
+html body button.edit-mode-btn:hover,
+html body .edit-mode-btn.edit-mode-btn:hover,
+html body .edit-mode-btn.edit-mode-btn.edit-mode-btn:hover,
+html body .cancel-edit-btn.edit-mode-btn:hover,
+html body .edit-mode-btn.cancel-edit-btn:hover {
+  background: rgba(217, 127, 90, 0.2) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.06) !important;
+  border: none !important;
+  border-width: 0 !important;
+}
+
+/* DEFEAT THE .cancel-edit-btn, .edit-mode-btn RULE */
+.edit-mode-btn.edit-mode-btn.edit-mode-btn {
+  background: rgba(217, 127, 90, 0.1) !important;
+  background-color: rgba(217, 127, 90, 0.1) !important;
+  color: var(--primary-orange) !important;
+  border: 0 !important;
+  border: none !important;
+  border-width: 0 !important;
+  border-style: none !important;
+  border-color: transparent !important;
+  outline: none !important;
+  padding: 12px 24px !important;
+  border-radius: 12px !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  height: 44px !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02) !important;
+  text-decoration: none !important;
+}
+
+.edit-mode-btn.edit-mode-btn.edit-mode-btn:hover {
+  background: rgba(217, 127, 90, 0.2) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.06) !important;
+  border: none !important;
+  border-width: 0 !important;
+}
+
+/* ULTRA SPECIFIC OVERRIDE FOR MARKET COMPETITION */
+.rectangular-edit-button-final-fix-123456789 {
+  background: rgba(217, 127, 90, 0.1) !important;
+  background-color: rgba(217, 127, 90, 0.1) !important;
+  color: var(--primary-orange) !important;
+  border: 0 !important;
+  border: none !important;
+  border-width: 0 !important;
+  border-style: none !important;
+  border-color: transparent !important;
+  outline: none !important;
+  padding: 12px 24px !important;
+  border-radius: 12px !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  height: 44px !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02) !important;
+  text-decoration: none !important;
+}
+
+.rectangular-edit-button-final-fix-123456789:hover {
+  background: rgba(217, 127, 90, 0.2) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.06) !important;
+  border: none !important;
+  border-width: 0 !important;
 }

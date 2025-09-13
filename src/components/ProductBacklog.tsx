@@ -186,7 +186,6 @@ const ProductBacklog: React.FC = () => {
       }
     } catch (err: any) {
       setError('Failed to load product backlog data');
-      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -725,10 +724,8 @@ const ProductBacklog: React.FC = () => {
     };
 
     const handleDeleteConfirm = async () => {
-      console.log('handleDeleteConfirm called', { epicToDelete, isDeleting, hasTriggered });
       
       if (!epicToDelete || isDeleting || hasTriggered) {
-        console.log('Skipping delete - conditions not met');
         return;
       }
       
@@ -801,12 +798,10 @@ const ProductBacklog: React.FC = () => {
   const performDelete = async (epicId: string) => {
     // Use ref to prevent duplicate calls (survives React.StrictMode double-rendering)
     if (deleteRequestRef.current.has(epicId)) {
-      console.log('Delete already in progress for epic:', epicId);
       return;
     }
     
     const requestId = `delete-${epicId}-${Date.now()}`;
-    console.log('Starting delete request:', requestId);
     
     // Mark this epic as being deleted
     deleteRequestRef.current.add(epicId);
@@ -820,7 +815,6 @@ const ProductBacklog: React.FC = () => {
       setSuccessMessage('');
 
       // Call DELETE endpoint for the specific epic
-      console.log(`Making DELETE API call for ${requestId}`);
       const response = await fetch(`${API_BASE_URL}/v3/products/${product?.productId}/backlog/${epicId}`, {
         method: 'DELETE',
         headers: {
@@ -851,18 +845,15 @@ const ProductBacklog: React.FC = () => {
           }
         } catch (parseError) {
           // Response parsing failed but deletion succeeded, keep the optimistic update
-          console.warn('Response parsing failed but deletion succeeded');
         }
         
         setTimeout(() => setSuccessMessage(''), 3000);
       } else {
         // Deletion failed
         const errorText = await response.text();
-        console.error('Delete failed:', response.status, errorText);
         setError('Failed to delete epic. Please try again.');
       }
     } catch (error: any) {
-      console.error('Delete error:', error);
       setError('Failed to delete epic. Please try again.');
     } finally {
       setDeletingEpicId(null);
@@ -1473,9 +1464,9 @@ const ProductBacklog: React.FC = () => {
                     </span>
                     Delete
                   </button>
-                  <button 
+                  <button
                     onClick={startEditingInViewModal}
-                    className="btn-edit"
+                    className="edit-mode-btn"
                   >
                     <span className="material-icons">edit</span>
                     Edit

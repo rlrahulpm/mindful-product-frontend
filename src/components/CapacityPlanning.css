@@ -145,54 +145,12 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
 }
 
-.edit-mode-btn {
-  background: rgba(217, 127, 90, 0.1);
-  color: var(--primary-orange);
-  border: none;
-  padding: 12px 24px;
-  border-radius: 12px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  height: 44px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
-}
-
-.edit-mode-btn:hover {
-  background: rgba(217, 127, 90, 0.2);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.06);
-}
 
 .edit-actions {
   display: flex;
   gap: 12px;
 }
 
-.cancel-edit-btn,
-.save-btn {
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border: none;
-  height: 44px;
-}
-
-.cancel-edit-btn {
-  background: var(--gray-lighter);
-  color: var(--gray-dark);
-}
-
-.cancel-edit-btn:hover {
-  background: var(--gray-light);
-}
 
 .save-btn {
   background: var(--primary-orange);
