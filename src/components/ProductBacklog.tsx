@@ -13,6 +13,17 @@ interface ProductBacklogData {
   updatedAt?: string;
 }
 
+interface UserStory {
+  id?: number;
+  title: string;
+  description: string;
+  acceptanceCriteria?: string;
+  priority: 'High' | 'Medium' | 'Low';
+  storyPoints?: number;
+  status?: 'Draft' | 'Ready' | 'In Progress' | 'Done' | 'Blocked';
+  displayOrder?: number;
+}
+
 interface Epic {
   id: string;
   name: string;
@@ -23,6 +34,7 @@ interface Epic {
   initiativeId: string;
   initiativeName: string;
   track: string;
+  userStories?: UserStory[];
 }
 
 interface Theme {
@@ -43,6 +55,7 @@ const ProductBacklog: React.FC = () => {
   const { product, loading: productLoading, error: productError } = useProduct(productSlug);
   const editorRef = useRef<HTMLDivElement>(null);
   const editViewEditorRef = useRef<HTMLDivElement>(null);
+  const storyEditorRef = useRef<HTMLDivElement>(null);
   const [showAddEpicModal, setShowAddEpicModal] = useState(false);
   const [newEpic, setNewEpic] = useState<Epic>({
     id: '',
@@ -53,8 +66,21 @@ const ProductBacklog: React.FC = () => {
     themeColor: '',
     initiativeId: '',
     initiativeName: '',
-    track: 'Customer Concerns'
+    track: 'Customer Concerns',
+    userStories: []
   });
+  const [tempUserStories, setTempUserStories] = useState<UserStory[]>([]);
+  const [showAddStoryForm, setShowAddStoryForm] = useState(false);
+  const [newUserStory, setNewUserStory] = useState<UserStory>({
+    title: '',
+    description: '',
+    acceptanceCriteria: '',
+    priority: 'Medium',
+    storyPoints: undefined,
+    status: 'Draft'
+  });
+  const [editingStoryIndex, setEditingStoryIndex] = useState<number | null>(null);
+  const [expandedStories, setExpandedStories] = useState<Set<number>>(new Set());
   const [productBacklog, setProductBacklog] = useState<ProductBacklogData>({
     productId: 0,
     epics: ''
@@ -240,7 +266,18 @@ const ProductBacklog: React.FC = () => {
       themeColor: '',
       initiativeId: '',
       initiativeName: '',
-      track: 'Customer Concerns'
+      track: 'Customer Concerns',
+      userStories: []
+    });
+    setTempUserStories([]);
+    setShowAddStoryForm(false);
+    setNewUserStory({
+      title: '',
+      description: '',
+      acceptanceCriteria: '',
+      priority: 'Medium',
+      storyPoints: undefined,
+      status: 'Draft'
     });
     setShowAddEpicModal(true);
   }, []);
@@ -249,7 +286,7 @@ const ProductBacklog: React.FC = () => {
     setShowAddEpicModal(false);
     setSaving(false); // Reset saving state
     setError(''); // Clear any errors
-    
+
     // Reset epic form
     setNewEpic({
       id: '',
@@ -260,12 +297,28 @@ const ProductBacklog: React.FC = () => {
       themeColor: '',
       initiativeId: '',
       initiativeName: '',
-      track: 'Customer Concerns'
+      track: 'Customer Concerns',
+      userStories: []
     });
-    
+
+    // Reset user stories
+    setTempUserStories([]);
+    setShowAddStoryForm(false);
+    setNewUserStory({
+      title: '',
+      description: '',
+      acceptanceCriteria: '',
+      priority: 'Medium',
+      storyPoints: undefined,
+      status: 'Draft'
+    });
+
     // Clear the editor content
     if (editorRef.current) {
       editorRef.current.innerHTML = '';
+    }
+    if (storyEditorRef.current) {
+      storyEditorRef.current.innerHTML = '';
     }
   }, []);
 
@@ -406,28 +459,29 @@ const ProductBacklog: React.FC = () => {
       try {
         setSaving(true);
         setError(''); // Clear any previous errors
-        
+
         // Get description content from editor if it exists
         let description = newEpic.description;
         if (editorRef.current) {
           description = editorRef.current.innerHTML.trim();
         }
-        
-        // Create the epic with cleaned description
+
+        // Create the epic with cleaned description and user stories
         const epicToSave = {
           ...newEpic,
-          description: description || ''
+          description: description || '',
+          userStories: tempUserStories
         };
-        
+
         const updatedEpics = [...epics, epicToSave];
-        
+
         // Check if token exists
         const token = localStorage.getItem('token');
         if (!token) {
           throw new Error('No authentication token found. Please log in again.');
         }
-        
-        // Save to backend
+
+        // Save epic to backend
         const response = await fetch(`${API_BASE_URL}/v3/products/${product?.productId}/backlog`, {
           method: 'POST',
           headers: {
@@ -443,19 +497,53 @@ const ProductBacklog: React.FC = () => {
           const savedData = await response.json();
           setProductBacklog(savedData);
           setEpics(updatedEpics); // Update local state
+
+          // Save user stories if any exist
+          if (tempUserStories.length > 0) {
+            try {
+              for (const story of tempUserStories) {
+                const storyResponse = await fetch(
+                  `${API_BASE_URL}/v3/products/${product?.productId}/epics/${epicToSave.id}/user-stories`,
+                  {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                      title: story.title,
+                      description: story.description,
+                      acceptanceCriteria: story.acceptanceCriteria,
+                      priority: story.priority,
+                      storyPoints: story.storyPoints,
+                      status: story.status
+                    })
+                  }
+                );
+
+                if (!storyResponse.ok) {
+                  console.error('Failed to save user story:', story.title);
+                }
+              }
+            } catch (storyError) {
+              console.error('Error saving user stories:', storyError);
+              // Don't fail the entire operation if stories fail to save
+            }
+          }
+
           setSuccessMessage('Epic added successfully!');
-          
+
           // Close modal and clear any errors
           setError('');
           closeAddEpicModal();
-          
+
           // Clear success message after 5 seconds
           setTimeout(() => setSuccessMessage(''), 5000);
         } else {
           // Roll back the optimistic update
           setEpics(epics);
           const errorText = await response.text();
-          
+
           if (response.status === 401 || response.status === 403) {
             setError('Authentication expired. Please refresh the page and log in again.');
           } else if (response.status === 500) {
@@ -467,7 +555,7 @@ const ProductBacklog: React.FC = () => {
       } catch (error: any) {
         // Roll back the optimistic update
         setEpics(epics);
-        
+
         if (error.message?.includes('authentication')) {
           setError(error.message);
         } else {
@@ -549,6 +637,105 @@ const ProductBacklog: React.FC = () => {
     // Clean up any empty tags or normalize formatting
     const content = e.currentTarget.innerHTML;
     updateEditingViewEpic('description', content);
+  };
+
+  // User Story Management Functions
+  const addUserStory = useCallback(() => {
+    if (newUserStory.title.trim()) {
+      const storyToAdd: UserStory = {
+        ...newUserStory,
+        id: Date.now(),
+        displayOrder: tempUserStories.length
+      };
+
+      setTempUserStories([...tempUserStories, storyToAdd]);
+
+      // Reset form
+      setNewUserStory({
+        title: '',
+        description: '',
+        acceptanceCriteria: '',
+        priority: 'Medium',
+        storyPoints: undefined,
+        status: 'Draft'
+      });
+
+      // Clear story editor
+      if (storyEditorRef.current) {
+        storyEditorRef.current.innerHTML = '';
+      }
+
+      setShowAddStoryForm(false);
+    } else {
+      setError('Please provide a title for the user story');
+    }
+  }, [newUserStory, tempUserStories]);
+
+  const updateUserStoryField = useCallback((field: keyof UserStory, value: any) => {
+    setNewUserStory(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  }, []);
+
+  const removeUserStory = useCallback((index: number) => {
+    setTempUserStories(prev => prev.filter((_, i) => i !== index));
+  }, []);
+
+  const editUserStory = useCallback((index: number) => {
+    const story = tempUserStories[index];
+    setNewUserStory(story);
+    setEditingStoryIndex(index);
+    setShowAddStoryForm(true);
+
+    if (storyEditorRef.current && story.description) {
+      storyEditorRef.current.innerHTML = story.description;
+    }
+  }, [tempUserStories]);
+
+  const updateEditingUserStory = useCallback(() => {
+    if (editingStoryIndex !== null && newUserStory.title.trim()) {
+      const updatedStories = [...tempUserStories];
+      updatedStories[editingStoryIndex] = {
+        ...newUserStory,
+        id: tempUserStories[editingStoryIndex].id
+      };
+      setTempUserStories(updatedStories);
+
+      // Reset form
+      setNewUserStory({
+        title: '',
+        description: '',
+        acceptanceCriteria: '',
+        priority: 'Medium',
+        storyPoints: undefined,
+        status: 'Draft'
+      });
+
+      setEditingStoryIndex(null);
+      setShowAddStoryForm(false);
+
+      if (storyEditorRef.current) {
+        storyEditorRef.current.innerHTML = '';
+      }
+    }
+  }, [editingStoryIndex, newUserStory, tempUserStories]);
+
+  const toggleStoryExpansion = useCallback((index: number) => {
+    setExpandedStories(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(index)) {
+        newSet.delete(index);
+      } else {
+        newSet.add(index);
+      }
+      return newSet;
+    });
+  }, []);
+
+  const handleStoryRichTextChange = (e: React.FormEvent<HTMLDivElement>) => {
+    const content = e.currentTarget.innerHTML;
+    updateUserStoryField('description', content);
   };
 
   const updateEpic = (id: string, field: keyof Epic, value: string) => {
@@ -1223,9 +1410,227 @@ const ProductBacklog: React.FC = () => {
                     />
                   </div>
                 </div>
+
+                {/* User Stories Section */}
+                <div className="form-group user-stories-section">
+                  <div className="user-stories-header">
+                    <label>
+                      User Stories (Optional)
+                      {tempUserStories.length > 0 && (
+                        <span className="story-count-badge">{tempUserStories.length}</span>
+                      )}
+                    </label>
+                    {!showAddStoryForm && (
+                      <button
+                        type="button"
+                        onClick={() => setShowAddStoryForm(true)}
+                        className="add-story-btn"
+                      >
+                        <span className="material-icons">add</span>
+                        Add User Story
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Add/Edit Story Form */}
+                  {showAddStoryForm && (
+                    <div className="user-story-form">
+                      <div className="story-form-row">
+                        <input
+                          type="text"
+                          value={newUserStory.title}
+                          onChange={(e) => updateUserStoryField('title', e.target.value)}
+                          placeholder="User story title *"
+                          className="story-title-input"
+                        />
+                        <select
+                          value={newUserStory.priority}
+                          onChange={(e) => updateUserStoryField('priority', e.target.value)}
+                          className="story-priority-select"
+                        >
+                          <option value="High">High</option>
+                          <option value="Medium">Medium</option>
+                          <option value="Low">Low</option>
+                        </select>
+                        <input
+                          type="number"
+                          value={newUserStory.storyPoints || ''}
+                          onChange={(e) => updateUserStoryField('storyPoints', e.target.value ? parseInt(e.target.value) : undefined)}
+                          placeholder="Points"
+                          className="story-points-input"
+                          min="1"
+                          max="100"
+                        />
+                      </div>
+
+                      <div className="story-form-group">
+                        <label>Description</label>
+                        <div className="rich-text-editor story-editor">
+                          <div className="rich-text-toolbar">
+                            <button
+                              type="button"
+                              onClick={() => execCommand('bold')}
+                              className="toolbar-btn"
+                              title="Bold"
+                            >
+                              <strong>B</strong>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => execCommand('italic')}
+                              className="toolbar-btn"
+                              title="Italic"
+                            >
+                              <em>I</em>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => execCommand('underline')}
+                              className="toolbar-btn"
+                              title="Underline"
+                            >
+                              <u>U</u>
+                            </button>
+                            <div className="toolbar-separator"></div>
+                            <button
+                              type="button"
+                              onClick={() => execCommand('insertUnorderedList')}
+                              className="toolbar-btn"
+                              title="Bullet List"
+                            >
+                              <span className="material-icons">format_list_bulleted</span>
+                            </button>
+                          </div>
+                          <div
+                            ref={storyEditorRef}
+                            contentEditable
+                            className="story-description-editor"
+                            onInput={handleStoryRichTextChange}
+                            data-placeholder="Story description (optional)"
+                            suppressContentEditableWarning={true}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="story-form-group">
+                        <label>Acceptance Criteria</label>
+                        <textarea
+                          value={newUserStory.acceptanceCriteria}
+                          onChange={(e) => updateUserStoryField('acceptanceCriteria', e.target.value)}
+                          placeholder="Define the acceptance criteria for this story..."
+                          className="story-acceptance-input"
+                          rows={3}
+                        />
+                      </div>
+
+                      <div className="story-form-actions">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowAddStoryForm(false);
+                            setEditingStoryIndex(null);
+                            setNewUserStory({
+                              title: '',
+                              description: '',
+                              acceptanceCriteria: '',
+                              priority: 'Medium',
+                              storyPoints: undefined,
+                              status: 'Draft'
+                            });
+                            if (storyEditorRef.current) {
+                              storyEditorRef.current.innerHTML = '';
+                            }
+                          }}
+                          className="story-cancel-btn"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="button"
+                          onClick={editingStoryIndex !== null ? updateEditingUserStory : addUserStory}
+                          className="story-save-btn"
+                        >
+                          {editingStoryIndex !== null ? 'Update' : 'Add'} Story
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* User Stories List */}
+                  {tempUserStories.length > 0 && (
+                    <div className="user-stories-list">
+                      {tempUserStories.map((story, index) => (
+                        <div key={story.id} className="user-story-item">
+                          <div className="story-item-header">
+                            <div className="story-item-left">
+                              <button
+                                type="button"
+                                onClick={() => toggleStoryExpansion(index)}
+                                className="story-expand-btn"
+                              >
+                                <span className="material-icons">
+                                  {expandedStories.has(index) ? 'expand_less' : 'expand_more'}
+                                </span>
+                              </button>
+                              <span className="story-title">{story.title}</span>
+                              {story.priority && (
+                                <span className={`story-priority-badge priority-${story.priority.toLowerCase()}`}>
+                                  {story.priority}
+                                </span>
+                              )}
+                              {story.storyPoints && (
+                                <span className="story-points-badge">
+                                  {story.storyPoints} pts
+                                </span>
+                              )}
+                            </div>
+                            <div className="story-item-actions">
+                              <button
+                                type="button"
+                                onClick={() => editUserStory(index)}
+                                className="story-edit-btn"
+                                title="Edit story"
+                              >
+                                <span className="material-icons">edit</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => removeUserStory(index)}
+                                className="story-delete-btn"
+                                title="Delete story"
+                              >
+                                <span className="material-icons">delete</span>
+                              </button>
+                            </div>
+                          </div>
+
+                          {expandedStories.has(index) && (
+                            <div className="story-item-details">
+                              {story.description && (
+                                <div className="story-detail-section">
+                                  <strong>Description:</strong>
+                                  <div
+                                    className="story-description-content"
+                                    dangerouslySetInnerHTML={{ __html: story.description }}
+                                  />
+                                </div>
+                              )}
+                              {story.acceptanceCriteria && (
+                                <div className="story-detail-section">
+                                  <strong>Acceptance Criteria:</strong>
+                                  <p>{story.acceptanceCriteria}</p>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-            
+
             <div className="product-backlog-modal-footer">
               <button 
                 onClick={handleAddEpic}
