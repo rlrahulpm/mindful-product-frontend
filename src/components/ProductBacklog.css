@@ -1879,3 +1879,134 @@
   margin: 0;
   white-space: pre-wrap;
 }
+
+/* User Stories Section in Epic Detail Modal */
+.user-stories-list {
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 8px;
+  background: #f9fafb;
+}
+
+.user-story-item {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.user-story-item:last-child {
+  margin-bottom: 0;
+}
+
+.user-story-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+
+.user-story-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+  flex: 1;
+}
+
+.user-story-meta {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.priority-badge {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.priority-badge.priority-high {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.priority-badge.priority-medium {
+  background: #fef3c7;
+  color: #f59e0b;
+}
+
+.priority-badge.priority-low {
+  background: #dbeafe;
+  color: #3b82f6;
+}
+
+.story-points {
+  padding: 2px 8px;
+  background: #f3f4f6;
+  color: #4b5563;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.status-badge {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.status-badge.status-draft {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.status-badge.status-ready {
+  background: #dbeafe;
+  color: #3b82f6;
+}
+
+.status-badge.status-in-progress {
+  background: #fef3c7;
+  color: #f59e0b;
+}
+
+.status-badge.status-done {
+  background: #d1fae5;
+  color: #10b981;
+}
+
+.status-badge.status-blocked {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.user-story-description {
+  font-size: 13px;
+  color: #4b5563;
+  line-height: 1.5;
+  margin-bottom: 8px;
+  padding-left: 16px;
+}
+
+.user-story-criteria {
+  font-size: 13px;
+  color: #374151;
+  background: #f9fafb;
+  padding: 8px 12px;
+  border-radius: 4px;
+  margin-top: 8px;
+}
+
+.user-story-criteria strong {
+  display: block;
+  margin-bottom: 4px;
+  color: #1f2937;
+  font-size: 12px;
+}
