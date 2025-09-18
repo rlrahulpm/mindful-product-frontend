@@ -56,6 +56,7 @@ const ProductBacklog: React.FC = () => {
   const editorRef = useRef<HTMLDivElement>(null);
   const editViewEditorRef = useRef<HTMLDivElement>(null);
   const storyEditorRef = useRef<HTMLDivElement>(null);
+  const editModeStoryEditorRef = useRef<HTMLDivElement>(null);
   const [showAddEpicModal, setShowAddEpicModal] = useState(false);
   const [newEpic, setNewEpic] = useState<Epic>({
     id: '',
@@ -98,7 +99,22 @@ const ProductBacklog: React.FC = () => {
   const [showViewEpicModal, setShowViewEpicModal] = useState(false);
   const [isEditingInViewModal, setIsEditingInViewModal] = useState(false);
   const [editingViewEpic, setEditingViewEpic] = useState<Epic | null>(null);
-  
+
+  // Edit mode user stories state
+  const [editModeUserStories, setEditModeUserStories] = useState<UserStory[]>([]);
+  const [showEditStoryForm, setShowEditStoryForm] = useState(false);
+  const [editModeNewUserStory, setEditModeNewUserStory] = useState<UserStory>({
+    title: '',
+    description: '',
+    acceptanceCriteria: '',
+    priority: 'Medium' as const,
+    storyPoints: undefined,
+    status: 'Draft' as const,
+    displayOrder: 0
+  });
+  const [editModeStoryIndex, setEditModeStoryIndex] = useState<number | null>(null);
+  const [editModeExpandedStories, setEditModeExpandedStories] = useState<Set<number>>(new Set());
+
   // Search and filter state
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedThemeFilter, setSelectedThemeFilter] = useState('');
@@ -320,6 +336,9 @@ const ProductBacklog: React.FC = () => {
     if (storyEditorRef.current) {
       storyEditorRef.current.innerHTML = '';
     }
+    if (editModeStoryEditorRef.current) {
+      editModeStoryEditorRef.current.innerHTML = '';
+    }
   }, []);
 
   const openViewEpicModal = (epic: Epic) => {
@@ -338,6 +357,11 @@ const ProductBacklog: React.FC = () => {
     if (viewingEpic) {
       setEditingViewEpic({ ...viewingEpic });
       setIsEditingInViewModal(true);
+      // Initialize edit mode user stories with current user stories
+      setEditModeUserStories(viewingEpic.userStories ? [...viewingEpic.userStories] : []);
+      setShowEditStoryForm(false);
+      setEditModeStoryIndex(null);
+      setEditModeExpandedStories(new Set());
     }
   };
 
@@ -402,10 +426,11 @@ const ProductBacklog: React.FC = () => {
         description = editViewEditorRef.current.innerHTML.trim();
       }
 
-      // Create the epic with cleaned description
+      // Create the epic with cleaned description and updated user stories
       const epicToSave = {
         ...editingViewEpic,
-        description: description || ''
+        description: description || '',
+        userStories: editModeUserStories
       };
 
       // Update the epic in the epics array
@@ -430,10 +455,42 @@ const ProductBacklog: React.FC = () => {
         setProductBacklog(savedData);
         setEpics(updatedEpics);
         setViewingEpic(epicToSave);
+
+        // Save user stories to backend if any exist
+        if (editModeUserStories.length > 0) {
+          try {
+            for (const story of editModeUserStories) {
+              const storyResponse = await fetch(
+                `${API_BASE_URL}/v3/products/${product?.productId}/epics/${epicToSave.id}/user-stories`,
+                {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                  },
+                  body: JSON.stringify({
+                    title: story.title,
+                    description: story.description || '',
+                    acceptanceCriteria: story.acceptanceCriteria || '',
+                    priority: story.priority,
+                    storyPoints: story.storyPoints
+                  })
+                }
+              );
+
+              if (!storyResponse.ok) {
+                console.warn('Failed to save user story:', story.title);
+              }
+            }
+          } catch (storyError) {
+            console.warn('Error saving user stories:', storyError);
+          }
+        }
+
         setSuccessMessage('Epic updated successfully!');
         setIsEditingInViewModal(false);
         setEditingViewEpic(null);
-        
+
         // Clear success message after 5 seconds
         setTimeout(() => setSuccessMessage(''), 5000);
       } else {
@@ -498,38 +555,8 @@ const ProductBacklog: React.FC = () => {
           setProductBacklog(savedData);
           setEpics(updatedEpics); // Update local state
 
-          // Save user stories if any exist
-          if (tempUserStories.length > 0) {
-            try {
-              for (const story of tempUserStories) {
-                const storyResponse = await fetch(
-                  `${API_BASE_URL}/v3/products/${product?.productId}/epics/${epicToSave.id}/user-stories`,
-                  {
-                    method: 'POST',
-                    headers: {
-                      'Content-Type': 'application/json',
-                      'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({
-                      title: story.title,
-                      description: story.description,
-                      acceptanceCriteria: story.acceptanceCriteria,
-                      priority: story.priority,
-                      storyPoints: story.storyPoints,
-                      status: story.status
-                    })
-                  }
-                );
-
-                if (!storyResponse.ok) {
-                  console.error('Failed to save user story:', story.title);
-                }
-              }
-            } catch (storyError) {
-              console.error('Error saving user stories:', storyError);
-              // Don't fail the entire operation if stories fail to save
-            }
-          }
+          // User stories are already saved by the backend /backlog endpoint
+          // No need to make separate API calls for user stories
 
           setSuccessMessage('Epic added successfully!');
 
@@ -737,6 +764,106 @@ const ProductBacklog: React.FC = () => {
     const content = e.currentTarget.innerHTML;
     updateUserStoryField('description', content);
   };
+
+  const handleEditModeStoryRichTextChange = (e: React.FormEvent<HTMLDivElement>) => {
+    const content = e.currentTarget.innerHTML;
+    updateEditModeUserStoryField('description', content);
+  };
+
+  // Edit Mode User Story Management Functions
+  const addEditModeUserStory = useCallback(() => {
+    if (editModeNewUserStory.title.trim()) {
+      const storyToAdd: UserStory = {
+        ...editModeNewUserStory,
+        id: Date.now(),
+        displayOrder: editModeUserStories.length
+      };
+
+      setEditModeUserStories([...editModeUserStories, storyToAdd]);
+
+      // Reset form
+      setEditModeNewUserStory({
+        title: '',
+        description: '',
+        acceptanceCriteria: '',
+        priority: 'Medium' as const,
+        storyPoints: undefined,
+        status: 'Draft' as const,
+        displayOrder: 0
+      });
+
+      setShowEditStoryForm(false);
+      setEditModeStoryIndex(null);
+
+      // Clear rich text editor
+      if (editModeStoryEditorRef.current) {
+        editModeStoryEditorRef.current.innerHTML = '';
+      }
+    }
+  }, [editModeNewUserStory, editModeUserStories]);
+
+  const updateEditModeUserStoryField = useCallback((field: keyof UserStory, value: any) => {
+    setEditModeNewUserStory(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  }, []);
+
+  const editEditModeUserStory = useCallback((index: number) => {
+    const story = editModeUserStories[index];
+    setEditModeNewUserStory(story);
+    setEditModeStoryIndex(index);
+    setShowEditStoryForm(true);
+
+    if (editModeStoryEditorRef.current && story.description) {
+      editModeStoryEditorRef.current.innerHTML = story.description;
+    }
+  }, [editModeUserStories]);
+
+  const updateEditModeEditingUserStory = useCallback(() => {
+    if (editModeStoryIndex !== null && editModeNewUserStory.title.trim()) {
+      const updatedStories = [...editModeUserStories];
+      updatedStories[editModeStoryIndex] = {
+        ...editModeNewUserStory,
+        id: editModeUserStories[editModeStoryIndex].id
+      };
+      setEditModeUserStories(updatedStories);
+
+      // Reset form
+      setEditModeNewUserStory({
+        title: '',
+        description: '',
+        acceptanceCriteria: '',
+        priority: 'Medium' as const,
+        storyPoints: undefined,
+        status: 'Draft' as const,
+        displayOrder: 0
+      });
+
+      setShowEditStoryForm(false);
+      setEditModeStoryIndex(null);
+
+      if (editModeStoryEditorRef.current) {
+        editModeStoryEditorRef.current.innerHTML = '';
+      }
+    }
+  }, [editModeStoryIndex, editModeNewUserStory, editModeUserStories]);
+
+  const removeEditModeUserStory = useCallback((index: number) => {
+    setEditModeUserStories(prev => prev.filter((_, i) => i !== index));
+  }, []);
+
+  const toggleEditModeStoryExpansion = useCallback((index: number) => {
+    setEditModeExpandedStories(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(index)) {
+        newSet.delete(index);
+      } else {
+        newSet.add(index);
+      }
+      return newSet;
+    });
+  }, []);
 
   const updateEpic = (id: string, field: keyof Epic, value: string) => {
     setEpics(prev => prev.map(epic => {
@@ -1830,9 +1957,263 @@ const ProductBacklog: React.FC = () => {
                     </div>
                   )}
                 </div>
+
+                {/* User Stories Section */}
+                {isEditingInViewModal ? (
+                  /* Edit Mode - Interactive User Stories */
+                  <div className="form-group">
+                    <label>
+                      User Stories (Optional)
+                      {editModeUserStories.length > 0 && (
+                        <span className="story-count-badge">{editModeUserStories.length}</span>
+                      )}
+                    </label>
+                    {!showEditStoryForm && (
+                      <button
+                        type="button"
+                        onClick={() => setShowEditStoryForm(true)}
+                        className="add-story-btn"
+                      >
+                        <span className="material-icons">add</span>
+                        Add User Story
+                      </button>
+                    )}
+
+                    {/* Add/Edit User Story Form */}
+                    {showEditStoryForm && (
+                      <div className="user-story-form">
+                        <div className="story-form-row">
+                          <input
+                            type="text"
+                            value={editModeNewUserStory.title}
+                            onChange={(e) => updateEditModeUserStoryField('title', e.target.value)}
+                            placeholder="User story title *"
+                            className="story-title-input"
+                          />
+                          <select
+                            value={editModeNewUserStory.priority}
+                            onChange={(e) => updateEditModeUserStoryField('priority', e.target.value)}
+                            className="story-priority-select"
+                          >
+                            <option value="High">High</option>
+                            <option value="Medium">Medium</option>
+                            <option value="Low">Low</option>
+                          </select>
+                          <input
+                            type="number"
+                            value={editModeNewUserStory.storyPoints || ''}
+                            onChange={(e) => updateEditModeUserStoryField('storyPoints', e.target.value ? parseInt(e.target.value) : undefined)}
+                            placeholder="Points"
+                            className="story-points-input"
+                            min="1"
+                            max="100"
+                          />
+                        </div>
+
+                        <div className="story-form-group">
+                          <label>Description</label>
+                          <div className="rich-text-editor story-editor">
+                            <div className="rich-text-toolbar">
+                              <button
+                                type="button"
+                                onClick={() => execCommand('bold')}
+                                className="toolbar-btn"
+                                title="Bold"
+                              >
+                                <strong>B</strong>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => execCommand('italic')}
+                                className="toolbar-btn"
+                                title="Italic"
+                              >
+                                <em>I</em>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => execCommand('underline')}
+                                className="toolbar-btn"
+                                title="Underline"
+                              >
+                                <u>U</u>
+                              </button>
+                              <div className="toolbar-separator"></div>
+                              <button
+                                type="button"
+                                onClick={() => execCommand('insertUnorderedList')}
+                                className="toolbar-btn"
+                                title="Bullet List"
+                              >
+                                <span className="material-icons">format_list_bulleted</span>
+                              </button>
+                            </div>
+                            <div
+                              ref={editModeStoryEditorRef}
+                              contentEditable
+                              className="story-description-editor"
+                              onInput={handleEditModeStoryRichTextChange}
+                              data-placeholder="Story description (optional)"
+                              suppressContentEditableWarning={true}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="story-form-group">
+                          <label>Acceptance Criteria</label>
+                          <textarea
+                            value={editModeNewUserStory.acceptanceCriteria}
+                            onChange={(e) => updateEditModeUserStoryField('acceptanceCriteria', e.target.value)}
+                            placeholder="Define the acceptance criteria for this story..."
+                            className="story-acceptance-input"
+                            rows={3}
+                          />
+                        </div>
+
+                        <div className="story-form-actions">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowEditStoryForm(false);
+                              setEditModeStoryIndex(null);
+                              setEditModeNewUserStory({
+                                title: '',
+                                description: '',
+                                acceptanceCriteria: '',
+                                priority: 'Medium' as const,
+                                storyPoints: undefined,
+                                status: 'Draft' as const,
+                                displayOrder: 0
+                              });
+                              if (editModeStoryEditorRef.current) {
+                                editModeStoryEditorRef.current.innerHTML = '';
+                              }
+                            }}
+                            className="story-cancel-btn"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="button"
+                            onClick={editModeStoryIndex !== null ? updateEditModeEditingUserStory : addEditModeUserStory}
+                            className="story-save-btn"
+                          >
+                            {editModeStoryIndex !== null ? 'Update' : 'Add'} Story
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* User Stories List */}
+                    {editModeUserStories.length > 0 && (
+                      <div className="user-stories-list">
+                        {editModeUserStories.map((story, index) => (
+                          <div key={story.id} className="user-story-item">
+                            <div className="story-item-header">
+                              <div className="story-item-left">
+                                <button
+                                  type="button"
+                                  onClick={() => toggleEditModeStoryExpansion(index)}
+                                  className="story-expand-btn"
+                                >
+                                  <span className="material-icons">
+                                    {editModeExpandedStories.has(index) ? 'expand_less' : 'expand_more'}
+                                  </span>
+                                </button>
+                                <span className="story-title">{story.title}</span>
+                                {story.priority && (
+                                  <span className={`story-priority-badge priority-${story.priority.toLowerCase()}`}>
+                                    {story.priority}
+                                  </span>
+                                )}
+                                {story.storyPoints && (
+                                  <span className="story-points-badge">
+                                    {story.storyPoints} pts
+                                  </span>
+                                )}
+                              </div>
+                              <div className="story-item-actions">
+                                <button
+                                  type="button"
+                                  onClick={() => editEditModeUserStory(index)}
+                                  className="story-edit-btn"
+                                  title="Edit story"
+                                >
+                                  <span className="material-icons">edit</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => removeEditModeUserStory(index)}
+                                  className="story-delete-btn"
+                                  title="Delete story"
+                                >
+                                  <span className="material-icons">delete</span>
+                                </button>
+                              </div>
+                            </div>
+                            {editModeExpandedStories.has(index) && (
+                              <div className="story-item-details">
+                                {story.acceptanceCriteria && (
+                                  <div className="story-detail-section">
+                                    <strong>Acceptance Criteria:</strong>
+                                    <p>{story.acceptanceCriteria}</p>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  /* View Mode - Read-only User Stories */
+                  viewingEpic.userStories && viewingEpic.userStories.length > 0 && (
+                    <div className="form-group">
+                      <label>User Stories ({viewingEpic.userStories.length})</label>
+                      <div className="user-stories-list">
+                        {viewingEpic.userStories.map((story, index) => (
+                          <div key={story.id || index} className="user-story-item">
+                            <div className="user-story-header">
+                              <h4 className="user-story-title">
+                                {index + 1}. {story.title}
+                              </h4>
+                              <div className="user-story-meta">
+                                <span className={`priority-badge priority-${story.priority.toLowerCase()}`}>
+                                  {story.priority}
+                                </span>
+                                {story.storyPoints && (
+                                  <span className="story-points">
+                                    {story.storyPoints} points
+                                  </span>
+                                )}
+                                {story.status && (
+                                  <span className={`status-badge status-${story.status.toLowerCase().replace(' ', '-')}`}>
+                                    {story.status}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            {story.description && (
+                              <div className="user-story-description">
+                                {story.description}
+                              </div>
+                            )}
+                            {story.acceptanceCriteria && (
+                              <div className="user-story-criteria">
+                                <strong>Acceptance Criteria:</strong>
+                                <div>{story.acceptanceCriteria}</div>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                )}
               </div>
             </div>
-            
+
             <div className="product-backlog-modal-footer">
               {isEditingInViewModal ? (
                 <div style={{ display: 'flex', gap: '12px' }}>
