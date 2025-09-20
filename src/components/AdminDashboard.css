@@ -14,8 +14,8 @@
 }
 
 .admin-back-button {
-  background: rgba(217, 127, 90, 0.08);
-  color: var(--primary-orange);
+  background: rgba(90, 155, 151, 0.08);
+  color: var(--primary-teal);
   border: none;
   padding: 12px;
   border-radius: 50%;
@@ -54,10 +54,10 @@
 }
 
 .admin-back-button:hover {
-  background: var(--primary-orange);
+  background: var(--primary-teal);
   color: var(--black);
   transform: translateY(-1px);
-  box-shadow: 0 8px 25px rgba(217, 127, 90, 0.3);
+  box-shadow: 0 8px 25px rgba(90, 155, 151, 0.3);
 }
 
 .admin-back-button:hover .material-icons {
@@ -66,7 +66,7 @@
 
 .admin-back-button:active {
   transform: translateY(0);
-  box-shadow: 0 4px 12px rgba(217, 127, 90, 0.2);
+  box-shadow: 0 4px 12px rgba(90, 155, 151, 0.2);
 }
 
 .product-info {
@@ -96,7 +96,7 @@
   width: 48px;
   height: 48px;
   border: 4px solid var(--gray-lighter);
-  border-top-color: var(--primary-orange);
+  border-top-color: var(--primary-teal);
   border-radius: 50%;
   margin: 0 auto 20px;
   animation: spin 1s linear infinite;
@@ -150,7 +150,7 @@
   display: flex;
   gap: 16px;
   margin-bottom: 32px;
-  border-bottom: 2px solid var(--gray-lighter);
+  border-bottom: 1px solid rgba(90, 155, 151, 0.1);
 }
 
 .tab-btn {
@@ -173,7 +173,7 @@
 }
 
 .tab-count {
-  background: var(--primary-orange);
+  background: var(--primary-teal);
   color: var(--white);
   font-size: 12px;
   font-weight: 700;
@@ -185,12 +185,12 @@
 }
 
 .tab-btn.active {
-  color: var(--primary-orange);
-  border-bottom-color: var(--primary-orange);
+  color: var(--primary-teal);
+  border-bottom-color: var(--primary-teal);
 }
 
 .tab-btn:hover {
-  color: var(--primary-orange);
+  color: var(--primary-teal);
 }
 
 /* Section Headers */
@@ -200,7 +200,7 @@
   align-items: center;
   margin: 32px 0 24px 0;
   padding-bottom: 16px;
-  border-bottom: 2px solid var(--gray-lighter);
+  border-bottom: 1px solid rgba(90, 155, 151, 0.1);
 }
 
 .section-title {
@@ -212,7 +212,7 @@
 
 /* Primary Action Button */
 .btn-primary-action {
-  background: var(--primary-orange);
+  background: var(--primary-teal);
   color: var(--white);
   border: none;
   border-radius: 12px;
@@ -229,9 +229,9 @@
 }
 
 .btn-primary-action:hover {
-  background: var(--primary-orange-dark);
+  background: var(--primary-teal-dark);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(217, 127, 90, 0.3);
+  box-shadow: 0 4px 12px rgba(90, 155, 151, 0.3);
 }
 
 .btn-primary-action .material-icons {
@@ -244,19 +244,20 @@
   border-radius: 16px;
   padding: 0;
   box-shadow: var(--shadow-sm);
-  border: 2px solid var(--primary-orange-light);
+  border: 1px solid rgba(90, 155, 151, 0.08);
   overflow: hidden;
   margin-top: 24px;
 }
 
 .roles-table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
 }
 
 .roles-table thead {
-  background: linear-gradient(to bottom, var(--white), rgba(217, 127, 90, 0.05));
-  border-bottom: 2px solid var(--primary-orange-light);
+  background: linear-gradient(to bottom, var(--white), rgba(90, 155, 151, 0.05));
+  border-bottom: 1px solid rgba(90, 155, 151, 0.1);
 }
 
 .roles-table th {
@@ -267,15 +268,20 @@
   font-size: 14px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  border-right: 1px solid rgba(90, 155, 151, 0.08);
+}
+
+.roles-table th:last-child {
+  border-right: none;
 }
 
 .roles-table tbody tr {
-  border-bottom: 1px solid var(--gray-lighter);
+  border-bottom: 1px solid rgba(90, 155, 151, 0.08);
   transition: all 0.15s ease;
 }
 
 .roles-table tbody tr:hover {
-  background: rgba(217, 127, 90, 0.02);
+  background: rgba(90, 155, 151, 0.02);
 }
 
 .roles-table tbody tr:last-child {
@@ -285,6 +291,11 @@
 .roles-table td {
   padding: 16px 20px;
   vertical-align: middle;
+  border-right: 1px solid rgba(90, 155, 151, 0.08);
+}
+
+.roles-table td:last-child {
+  border-right: none;
 }
 
 .role-name-wrapper {
@@ -294,7 +305,7 @@
 }
 
 .role-icon {
-  color: var(--primary-orange);
+  color: var(--primary-teal);
   font-size: 20px;
 }
 
@@ -328,7 +339,7 @@
 
 .product-label {
   font-weight: 600;
-  color: var(--primary-orange);
+  color: var(--primary-teal);
 }
 
 .module-names {
@@ -341,6 +352,75 @@
   justify-content: flex-end;
 }
 
+
+/* Edit Button */
+.table-action-btn.edit-btn {
+  background: none;
+  border: none;
+  color: var(--gray-medium);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 6px;
+  transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  position: relative;
+  overflow: hidden;
+  margin: 0 4px;
+}
+
+.table-action-btn.edit-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(90, 155, 151, 0.1), transparent);
+  transition: left 0.3s ease;
+}
+
+.table-action-btn.edit-btn:hover::before {
+  left: 100%;
+}
+
+.table-action-btn.edit-btn:hover {
+  color: var(--primary-teal);
+  background: rgba(90, 155, 151, 0.1);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(90, 155, 151, 0.2);
+}
+
+.table-action-btn.edit-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(90, 155, 151, 0.3);
+}
+
+.table-action-btn.edit-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  background: none;
+  transform: none;
+  box-shadow: none;
+}
+
+.table-action-btn.edit-btn:disabled::before {
+  display: none;
+}
+
+.table-action-btn.edit-btn .material-icons {
+  font-size: 18px;
+  transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+  position: relative;
+  z-index: 2;
+}
+
+.table-action-btn.edit-btn:hover .material-icons {
+  transform: scale(1.1);
+}
 
 /* Delete Button - Exact copy from ProductBacklog delete-epic-btn */
 .table-action-btn.delete-btn {
@@ -416,13 +496,13 @@
   padding: 60px 20px;
   background: var(--white);
   border-radius: 16px;
-  border: 2px solid var(--primary-orange-light);
+  border: 1px solid rgba(90, 155, 151, 0.08);
   margin-top: 24px;
 }
 
 .empty-state-table .material-icons {
   font-size: 48px;
-  color: var(--primary-orange);
+  color: var(--primary-teal);
   margin-bottom: 16px;
 }
 
@@ -442,7 +522,7 @@
 }
 
 .card-icon {
-  background: rgba(217, 127, 90, 0.2);
+  background: rgba(90, 155, 151, 0.2);
   border-radius: 12px;
   padding: 10px;
   display: flex;
@@ -455,7 +535,7 @@
 
 .card-icon .material-icons {
   font-size: 1.2rem;
-  color: var(--primary-orange);
+  color: var(--primary-teal);
 }
 
 .card-info {
@@ -500,7 +580,7 @@
 
 .modules-title .material-icons {
   font-size: 18px;
-  color: var(--primary-orange);
+  color: var(--primary-teal);
 }
 
 .product-module-group {
@@ -521,7 +601,7 @@
   margin: 0 0 8px 0;
   font-size: 0.85rem;
   font-weight: 600;
-  color: var(--primary-orange);
+  color: var(--primary-teal);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -610,7 +690,7 @@
   border-radius: 16px;
   padding: 20px;
   box-shadow: var(--shadow-sm);
-  border: 2px solid var(--primary-orange-light);
+  border: 1px solid rgba(90, 155, 151, 0.08);
   transition: all 0.3s ease;
   position: relative;
   display: flex;
@@ -621,12 +701,12 @@
 .user-card:hover {
   transform: translateY(-4px);
   box-shadow: var(--shadow-md);
-  border-color: var(--primary-orange);
-  background: linear-gradient(to bottom, var(--white), rgba(217, 127, 90, 0.02));
+  border-color: var(--primary-teal);
+  background: linear-gradient(to bottom, var(--white), rgba(90, 155, 151, 0.02));
 }
 
 .user-avatar {
-  background: rgba(217, 127, 90, 0.2);
+  background: rgba(90, 155, 151, 0.2);
   border-radius: 50%;
   width: 48px;
   height: 48px;
@@ -639,7 +719,7 @@
 
 .user-avatar .material-icons {
   font-size: 1.2rem;
-  color: var(--primary-orange);
+  color: var(--primary-teal);
 }
 
 .user-info {
@@ -685,7 +765,7 @@
 
 .badge-admin {
   background: var(--primary-orange-light);
-  color: var(--primary-orange-dark);
+  color: var(--primary-teal-dark);
 }
 
 .badge-admin .material-icons {
@@ -714,6 +794,7 @@
 
 .users-table thead {
   background: linear-gradient(135deg, var(--gray-lighter), rgba(248, 248, 248, 0.5));
+  border-bottom: 1px solid rgba(90, 155, 151, 0.08);
   border-radius: 12px 12px 0 0;
 }
 
@@ -725,15 +806,20 @@
   color: var(--gray-medium);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  border-right: 1px solid rgba(90, 155, 151, 0.08);
+}
+
+.users-table th:last-child {
+  border-right: none;
 }
 
 .users-table tbody tr {
   background: var(--white);
-  border-bottom: 1px solid var(--gray-lighter);
+  border-bottom: 1px solid rgba(90, 155, 151, 0.08);
 }
 
 .users-table tbody tr:hover {
-  background: linear-gradient(135deg, rgba(217, 127, 90, 0.02), rgba(217, 127, 90, 0.04));
+  background: linear-gradient(135deg, rgba(90, 155, 151, 0.02), rgba(90, 155, 151, 0.04));
 }
 
 .users-table tbody tr:last-child {
@@ -745,6 +831,11 @@
   font-size: 14px;
   color: var(--black);
   vertical-align: middle;
+  border-right: 1px solid rgba(90, 155, 151, 0.08);
+}
+
+.users-table td:last-child {
+  border-right: none;
 }
 
 .user-email-cell {
@@ -759,7 +850,7 @@
 
 .users-table .user-icon {
   font-size: 32px;
-  color: var(--primary-orange);
+  color: var(--primary-teal);
 }
 
 .users-table .user-email {
@@ -803,7 +894,7 @@
 }
 
 .users-table .badge-admin {
-  background: linear-gradient(135deg, var(--primary-orange), #ff8a65);
+  background: linear-gradient(135deg, var(--primary-teal), #ff8a65);
   color: var(--white);
 }
 
@@ -997,14 +1088,14 @@
 
 .form-label .material-icons {
   font-size: 18px;
-  color: var(--primary-orange);
+  color: var(--primary-teal);
 }
 
 .form-control {
   width: 100%;
   padding: 16px 20px;
-  border: 2px solid var(--gray-lighter);
-  border-radius: 12px;
+  border: 1px solid rgba(90, 155, 151, 0.1);
+  border-radius: 10px;
   font-size: 16px;
   transition: all 0.3s ease;
   background-color: var(--white);
@@ -1014,8 +1105,8 @@
 
 .form-control:focus {
   outline: none;
-  border-color: var(--primary-orange);
-  box-shadow: 0 0 0 4px rgba(217, 127, 90, 0.1);
+  border-color: var(--primary-teal);
+  box-shadow: 0 0 0 4px rgba(90, 155, 151, 0.1);
   transform: translateY(-2px);
 }
 
@@ -1040,8 +1131,8 @@
 
 /* Product Module Tabs */
 .product-module-tabs {
-  border: 2px solid var(--gray-lighter);
-  border-radius: 8px;
+  border: 1px solid rgba(90, 155, 151, 0.1);
+  border-radius: 10px;
   overflow: hidden;
   position: relative;
 }
@@ -1092,13 +1183,13 @@
 
 .product-tab:hover {
   background-color: var(--gray-light);
-  color: var(--primary-orange);
+  color: var(--primary-teal);
 }
 
 .product-tab.active {
   background-color: var(--white);
-  color: var(--primary-orange);
-  border-bottom-color: var(--primary-orange);
+  color: var(--primary-teal);
+  border-bottom-color: var(--primary-teal);
   font-weight: 600;
 }
 
@@ -1118,14 +1209,14 @@
   gap: 12px;
   cursor: pointer;
   padding: 12px;
-  border-radius: 8px;
-  border: 1px solid var(--gray-lighter);
+  border-radius: 10px;
+  border: 1px solid rgba(90, 155, 151, 0.08);
   transition: all 0.3s ease;
 }
 
 .checkbox-label:hover {
   background-color: var(--gray-lighter);
-  border-color: var(--primary-orange-light);
+  border-color: rgba(90, 155, 151, 0.2);
 }
 
 .checkbox-label input[type="checkbox"] {
@@ -1153,7 +1244,7 @@
 
 .module-info .material-icons {
   font-size: 16px;
-  color: var(--primary-orange);
+  color: var(--primary-teal);
 }
 
 .checkbox-text .module-description {
@@ -1195,7 +1286,7 @@
   gap: 12px;
   justify-content: flex-end;
   padding: 20px 32px;
-  border-top: 2px solid #E5E5E5;
+  border-top: 1px solid rgba(90, 155, 151, 0.1);
   background: #FFFFFF;
   flex-shrink: 0;
   position: sticky;
@@ -1205,7 +1296,7 @@
 }
 
 .btn-primary {
-  background: var(--primary-orange);
+  background: var(--primary-teal);
   color: var(--white);
   border: none;
   border-radius: 8px;
@@ -1220,9 +1311,9 @@
 }
 
 .btn-primary:hover {
-  background: var(--primary-orange-dark);
+  background: var(--primary-teal-dark);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(217, 127, 90, 0.3);
+  box-shadow: 0 4px 12px rgba(90, 155, 151, 0.3);
 }
 
 .btn-primary .material-icons {
@@ -1547,7 +1638,7 @@
   gap: 12px;
   justify-content: flex-end;
   padding: 20px 32px;
-  border-top: 2px solid var(--gray-lighter);
+  border-top: 1px solid rgba(90, 155, 151, 0.1);
   background: var(--white);
   flex-shrink: 0;
   position: sticky;
