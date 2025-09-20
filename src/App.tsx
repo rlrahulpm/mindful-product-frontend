@@ -126,8 +126,8 @@ function App() {
                 </PrivateRoute>
               } 
             />
-            <Route 
-              path="/products/:productId/modules/kanban" 
+            <Route
+              path="/products/:productSlug/modules/kanban"
               element={
                 <PrivateRoute>
                   <KanbanBoard />

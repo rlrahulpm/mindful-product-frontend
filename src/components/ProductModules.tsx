@@ -158,7 +158,7 @@ const ProductModules: React.FC = () => {
                 } else if (productModule.module.name === 'Capacity Planning') {
                   navigate(`/products/${productSlug}/modules/capacity-planning`);
                 } else if (productModule.module.name === 'Kanban Board') {
-                  navigate(`/products/${product?.productId}/modules/kanban`);
+                  navigate(`/products/${productSlug}/modules/kanban`);
                 }
               }
             }}

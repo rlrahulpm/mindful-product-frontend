@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useProduct } from '../hooks/useProduct';
 import './KanbanBoard.css';
 
 interface KanbanItem {
@@ -18,15 +19,10 @@ interface KanbanItem {
   updatedAt?: string;
 }
 
-interface Product {
-  productId: string;
-  productName: string;
-}
-
 const KanbanBoard: React.FC = () => {
   const navigate = useNavigate();
-  const { productId } = useParams<{ productId: string }>();
-  const [product, setProduct] = useState<Product | null>(null);
+  const { productSlug } = useParams<{ productSlug: string }>();
+  const { product, loading: productLoading, error: productError } = useProduct(productSlug);
   const [kanbanItems, setKanbanItems] = useState<{ [key: string]: KanbanItem[] }>({
     COMMITTED: [],
     TODO: [],
@@ -49,27 +45,12 @@ const KanbanBoard: React.FC = () => {
     { id: 'DONE', title: 'Done', color: '#10b981' }
   ];
 
-  const loadProduct = useCallback(async () => {
-    if (!productId) return;
-    try {
-      const response = await fetch(`http://localhost:8080/api/v3/products/${productId}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setProduct(data);
-      }
-    } catch (err) {
-    }
-  }, [productId]);
 
   const loadKanbanItems = useCallback(async () => {
-    if (!productId) return;
+    if (!product?.productId) return;
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:8080/api/v3/products/${productId}/kanban`, {
+      const response = await fetch(`http://localhost:8080/api/v3/products/${product.productId}/kanban`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -91,24 +72,20 @@ const KanbanBoard: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [productId]);
+  }, [product]);
 
   useEffect(() => {
-    if (!productId) return;
-    
-    const loadData = async () => {
-      await Promise.all([loadProduct(), loadKanbanItems()]);
-    };
-    
-    loadData();
-  }, [productId, loadProduct, loadKanbanItems]);
+    if (!product?.productId) return;
+
+    loadKanbanItems();
+  }, [product, loadKanbanItems]);
 
 
   const handleUpdateItem = async () => {
     if (!editingItem) return;
 
     try {
-      const response = await fetch(`http://localhost:8080/api/v3/products/${productId}/kanban/${editingItem.id}`, {
+      const response = await fetch(`http://localhost:8080/api/v3/products/${product?.productId}/kanban/${editingItem.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -142,7 +119,7 @@ const KanbanBoard: React.FC = () => {
     if (!window.confirm('Are you sure you want to delete this item?')) return;
 
     try {
-      const response = await fetch(`http://localhost:8080/api/v3/products/${productId}/kanban/${itemId}`, {
+      const response = await fetch(`http://localhost:8080/api/v3/products/${product?.productId}/kanban/${itemId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -223,7 +200,7 @@ const KanbanBoard: React.FC = () => {
 
     // Make API call to persist the change
     try {
-      const response = await fetch(`http://localhost:8080/api/v3/products/${productId}/kanban/${draggedItem.id}/move`, {
+      const response = await fetch(`http://localhost:8080/api/v3/products/${product?.productId}/kanban/${draggedItem.id}/move`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -285,10 +262,10 @@ const KanbanBoard: React.FC = () => {
       </div>
 
       {/* Messages */}
-      {error && (
+      {(error || productError) && (
         <div className="error-message">
           <span className="material-icons">error</span>
-          {error}
+          {error || productError}
         </div>
       )}
       {successMessage && (
@@ -299,7 +276,7 @@ const KanbanBoard: React.FC = () => {
       )}
 
       {/* Kanban Board */}
-      {loading ? (
+      {(loading || productLoading) ? (
         <div className="loading-state">
           <span className="material-icons">hourglass_empty</span>
           Loading kanban board...
