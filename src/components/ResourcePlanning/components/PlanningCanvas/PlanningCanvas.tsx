@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { ResourcePlanningState, BacklogEpic, UserStory, TeamMember, ResourceAssignmentRequest } from '../../../../types/resourcePlanning.types';
 import { resourcePlanningService } from '../../../../services/resourcePlanningService';
+import Notification from '../Notification/Notification';
+import ConfirmDialog from '../ConfirmDialog/ConfirmDialog';
 
 interface PlanningCanvasProps {
   productId: number;
@@ -20,6 +22,25 @@ const PlanningCanvas: React.FC<PlanningCanvasProps> = ({
     startDate: '',
     endDate: ''
   });
+
+  const [notification, setNotification] = useState<{
+    message: string;
+    type: 'success' | 'error' | 'warning' | 'info';
+    isVisible: boolean;
+  }>({ message: '', type: 'info', isVisible: false });
+
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean;
+    assignmentId: number | null;
+  }>({ isOpen: false, assignmentId: null });
+
+  const showNotification = (message: string, type: 'success' | 'error' | 'warning' | 'info') => {
+    setNotification({ message, type, isVisible: true });
+  };
+
+  const hideNotification = () => {
+    setNotification(prev => ({ ...prev, isVisible: false }));
+  };
 
   const handleSelectEpic = async (epic: BacklogEpic) => {
     updateState({ selectedEpic: epic, loading: true });
@@ -51,7 +72,7 @@ const PlanningCanvas: React.FC<PlanningCanvasProps> = ({
 
     // Frontend validation
     if (assignmentFormData.startDate > assignmentFormData.endDate) {
-      alert('Start date must be before or equal to end date');
+      showNotification('Start date must be before or equal to end date', 'warning');
       return;
     }
 
@@ -64,33 +85,46 @@ const PlanningCanvas: React.FC<PlanningCanvasProps> = ({
         const assignments = await resourcePlanningService.getEpicAssignments(productId, state.selectedEpic.epicId);
         updateState({ assignments });
       }
+      showNotification('Assignment created successfully', 'success');
     } catch (error: any) {
       console.error('Failed to create assignment:', error);
 
       // Show user-friendly error message
       if (error.response?.data?.error) {
-        alert(error.response.data.error);
+        showNotification(error.response.data.error, 'error');
       } else if (error.message) {
-        alert(`Failed to create assignment: ${error.message}`);
+        showNotification(`Failed to create assignment: ${error.message}`, 'error');
       } else {
-        alert('Failed to create assignment. Please try again.');
+        showNotification('Failed to create assignment. Please try again.', 'error');
       }
     }
   };
 
-  const handleDeleteAssignment = async (assignmentId: number) => {
-    if (window.confirm('Are you sure you want to remove this assignment?')) {
-      try {
-        await resourcePlanningService.deleteAssignment(productId, assignmentId);
+  const handleDeleteAssignment = (assignmentId: number) => {
+    setConfirmDialog({ isOpen: true, assignmentId });
+  };
 
-        if (state.selectedEpic) {
-          const assignments = await resourcePlanningService.getEpicAssignments(productId, state.selectedEpic.epicId);
-          updateState({ assignments });
-        }
-      } catch (error) {
-        console.error('Failed to delete assignment:', error);
+  const confirmDeleteAssignment = async () => {
+    if (!confirmDialog.assignmentId) return;
+
+    try {
+      await resourcePlanningService.deleteAssignment(productId, confirmDialog.assignmentId);
+
+      if (state.selectedEpic) {
+        const assignments = await resourcePlanningService.getEpicAssignments(productId, state.selectedEpic.epicId);
+        updateState({ assignments });
       }
+      showNotification('Assignment removed successfully', 'success');
+    } catch (error) {
+      console.error('Failed to delete assignment:', error);
+      showNotification('Failed to remove assignment. Please try again.', 'error');
+    } finally {
+      setConfirmDialog({ isOpen: false, assignmentId: null });
     }
+  };
+
+  const cancelDeleteAssignment = () => {
+    setConfirmDialog({ isOpen: false, assignmentId: null });
   };
 
   const getAssignedMembers = (userStoryId: number) => {
@@ -307,7 +341,7 @@ const PlanningCanvas: React.FC<PlanningCanvasProps> = ({
                                         </option>
                                         {availableMembers.map((member) => (
                                           <option key={member.id} value={member.id}>
-                                            {member.memberName} ({member.team?.name})
+                                            {member.memberName}{member.team?.name ? ` (${member.team.name})` : ''}
                                           </option>
                                         ))}
                                       </select>
@@ -349,6 +383,24 @@ const PlanningCanvas: React.FC<PlanningCanvasProps> = ({
           <p>Publish some epics from the backlog to start resource planning</p>
         </div>
       )}
+
+      <Notification
+        message={notification.message}
+        type={notification.type}
+        isVisible={notification.isVisible}
+        onClose={hideNotification}
+      />
+
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        title="Remove Assignment"
+        message="Are you sure you want to remove this assignment? This action cannot be undone."
+        confirmText="Remove"
+        cancelText="Cancel"
+        type="danger"
+        onConfirm={confirmDeleteAssignment}
+        onCancel={cancelDeleteAssignment}
+      />
     </div>
   );
 };
