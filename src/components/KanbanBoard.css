@@ -39,9 +39,9 @@
 }
 
 .back-button {
-  background: rgba(217, 127, 90, 0.08);
+  background: rgba(90, 155, 151, 0.08);
   border: none;
-  color: var(--primary-orange);
+  color: var(--primary-teal);
   padding: 12px;
   border-radius: 50%;
   font-size: 14px;
@@ -79,10 +79,8 @@
 }
 
 .back-button:hover {
-  background: var(--primary-orange);
+  background: var(--primary-teal);
   color: var(--black);
-  transform: translateY(-1px);
-  box-shadow: 0 8px 25px rgba(217, 127, 90, 0.3);
 }
 
 .back-button:hover .material-icons {
@@ -91,7 +89,7 @@
 
 .back-button:active {
   transform: translateY(0);
-  box-shadow: 0 4px 12px rgba(217, 127, 90, 0.2);
+  box-shadow: 0 4px 12px rgba(90, 155, 151, 0.2);
 }
 
 .kanban-page-title {
@@ -106,14 +104,14 @@
 
 .kanban-page-title .material-icons {
   font-size: 28px;
-  color: var(--primary-orange);
+  color: var(--primary-teal);
 }
 
 .btn-primary-action {
-  background: var(--primary-orange);
+  background: var(--primary-teal);
   color: var(--white);
   border: none;
-  border-radius: 12px;
+  border-radius: 10px;
   padding: 12px 24px;
   font-size: 15px;
   font-weight: 600;
@@ -127,9 +125,8 @@
 }
 
 .btn-primary-action:hover {
-  background: var(--primary-orange-dark);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(217, 127, 90, 0.3);
+  background: var(--primary-teal-dark);
+  box-shadow: 0 4px 12px rgba(90, 155, 151, 0.3);
 }
 
 .btn-primary-action .material-icons {
@@ -144,7 +141,7 @@
   gap: 12px;
   padding: 16px 24px;
   margin-bottom: 24px;
-  border-radius: 12px;
+  border-radius: 10px;
   font-size: 14px;
   font-weight: 500;
   animation: slideDown 0.3s ease;
@@ -184,7 +181,7 @@
 
 .kanban-column {
   background: var(--white);
-  border: 1px solid rgba(217, 127, 90, 0.1);
+  border: 1px solid rgba(90, 155, 151, 0.1);
   border-radius: 16px;
   box-shadow: var(--shadow-sm);
   display: flex;
@@ -198,7 +195,7 @@
 }
 
 .kanban-column.drag-over {
-  background: rgba(217, 127, 90, 0.03);
+  background: rgba(90, 155, 151, 0.03);
   box-shadow: var(--shadow-lg);
   border-color: var(--primary-orange-light);
   transform: translateY(-2px);
@@ -245,7 +242,7 @@
 .kanban-item {
   background: var(--white);
   border: 1px solid var(--gray-lighter);
-  border-radius: 12px;
+  border-radius: 10px;
   padding: 20px;
   margin-bottom: 16px;
   cursor: move;
@@ -283,7 +280,7 @@
   left: 0;
   right: 0;
   height: 3px;
-  background: var(--primary-orange);
+  background: var(--primary-teal);
   border-radius: 12px 12px 0 0;
 }
 
@@ -295,7 +292,7 @@
   left: 0;
   right: 0;
   height: 3px;
-  background: var(--primary-orange);
+  background: var(--primary-teal);
   border-radius: 12px 12px 0 0;
 }
 
@@ -334,7 +331,6 @@
 
 .kanban-item:hover {
   background: var(--white);
-  transform: translateY(-2px);
   box-shadow: var(--shadow-md);
   border-color: var(--gray-light);
 }
@@ -342,7 +338,6 @@
 .kanban-item:active {
   cursor: grabbing;
   opacity: 0.9;
-  transform: translateY(-2px);
 }
 
 .item-header {
@@ -365,7 +360,7 @@
 }
 
 .roadmap-indicator {
-  color: var(--primary-orange);
+  color: var(--primary-teal);
   font-size: 18px !important;
 }
 
@@ -373,10 +368,10 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  background: rgba(217, 127, 90, 0.1);
-  color: var(--primary-orange);
+  background: rgba(90, 155, 151, 0.1);
+  color: var(--primary-teal);
   padding: 4px 8px;
-  border-radius: 6px;
+  border-radius: 10px;
   font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
@@ -413,8 +408,8 @@
 }
 
 .btn-edit-item:hover {
-  color: var(--primary-orange);
-  background: rgba(217, 127, 90, 0.1);
+  color: var(--primary-teal);
+  background: rgba(90, 155, 151, 0.1);
 }
 
 .btn-delete-item:hover {
@@ -470,7 +465,7 @@
   display: inline-flex;
   align-items: center;
   padding: 4px 12px;
-  border-radius: 6px;
+  border-radius: 10px;
   color: var(--white);
   font-size: 11px;
   font-weight: 700;
@@ -620,7 +615,7 @@
 
 .kanban-modal-title .material-icons {
   font-size: 28px;
-  color: var(--primary-orange);
+  color: var(--primary-teal);
 }
 
 .kanban-modal-close-btn {
@@ -629,7 +624,7 @@
   right: 16px;
   background: var(--gray-lighter);
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   width: 32px;
   height: 32px;
   display: flex;
@@ -676,14 +671,14 @@
 
 .form-label .material-icons {
   font-size: 18px;
-  color: var(--primary-orange);
+  color: var(--primary-teal);
 }
 
 .form-control {
   width: 100%;
   padding: 16px 20px;
-  border: 2px solid var(--gray-lighter);
-  border-radius: 12px;
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
   font-size: 16px;
   transition: all 0.3s ease;
   background-color: var(--white);
@@ -693,9 +688,8 @@
 
 .form-control:focus {
   outline: none;
-  border-color: var(--primary-orange);
-  box-shadow: 0 0 0 4px rgba(217, 127, 90, 0.1);
-  transform: translateY(-2px);
+  border-color: var(--primary-teal);
+  box-shadow: 0 0 0 4px rgba(90, 155, 151, 0.1);
 }
 
 .form-control::placeholder {
@@ -741,7 +735,7 @@
   background: var(--gray-lighter);
   color: var(--gray-dark);
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   padding: 12px 20px;
   font-size: 14px;
   font-weight: 600;
@@ -755,10 +749,10 @@
 }
 
 .btn-save {
-  background: var(--primary-orange);
+  background: var(--primary-teal);
   color: var(--white);
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   padding: 12px 20px;
   font-size: 14px;
   font-weight: 600;
@@ -770,9 +764,8 @@
 }
 
 .btn-save:hover {
-  background: var(--primary-orange-dark);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(217, 127, 90, 0.3);
+  background: var(--primary-teal-dark);
+  box-shadow: 0 4px 12px rgba(90, 155, 151, 0.3);
 }
 
 .btn-save .material-icons {

@@ -1,7 +1,7 @@
 .App {
   min-height: 100vh;
   background-color: var(--background);
-  padding-top: 80px; /* Add padding to account for fixed navbar */
+  padding-top: 76px;
 }
 
 .page-container {
@@ -12,5 +12,5 @@
 
 .main-content {
   flex: 1;
-  padding-top: 20px;
+  padding-top: var(--spacing-xl);
 }

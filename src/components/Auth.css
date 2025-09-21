@@ -1,7 +1,7 @@
 .auth-wrapper {
   min-height: 100vh;
   display: flex;
-  margin-top: -80px; /* Offset navbar */
+  margin-top: -76px;
 }
 
 .auth-container {
@@ -12,7 +12,7 @@
 
 .auth-left {
   flex: 1;
-  background: linear-gradient(135deg, var(--primary-orange) 0%, var(--primary-orange-dark) 100%);
+  background: linear-gradient(135deg, var(--primary-teal) 0%, var(--primary-teal-dark) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -78,8 +78,8 @@
 
 .auth-visual {
   background: rgba(255,255,255,0.95);
-  padding: 60px 40px;
-  border-radius: 24px;
+  padding: 40px 24px;
+  border-radius: 0px;
   box-shadow: 0 20px 60px rgba(0,0,0,0.2);
   position: relative;
   max-width: 400px;
@@ -90,7 +90,7 @@
   background: var(--white);
   border: 3px solid var(--black);
   padding: 40px;
-  border-radius: 16px;
+  border-radius: 0px;
   position: relative;
   transform: rotate(-5deg);
   transition: transform 0.3s ease;
@@ -111,7 +111,7 @@
 .visual-subtitle {
   font-size: 1.8rem;
   font-weight: 900;
-  color: var(--primary-orange);
+  color: var(--primary-teal);
   line-height: 0.9;
   margin-bottom: 8px;
 }
@@ -175,7 +175,7 @@
 
 .form-control {
   width: 100%;
-  padding: 16px 20px;
+  padding: 12px 16px;
   border: 2px solid var(--gray-lighter);
   border-radius: 12px;
   font-size: 16px;
@@ -185,8 +185,8 @@
 
 .form-control:focus {
   outline: none;
-  border-color: var(--primary-orange);
-  box-shadow: 0 0 0 4px rgba(217, 127, 90, 0.1);
+  border-color: var(--primary-teal);
+  box-shadow: 0 0 0 4px rgba(90, 155, 151, 0.1);
   transform: translateY(-2px);
 }
 
@@ -196,8 +196,8 @@
 
 .auth-submit {
   width: 100%;
-  padding: 18px 24px;
-  font-size: 17px;
+  padding: 12px 20px;
+  font-size: 14px;
   font-weight: 700;
   margin-top: 32px;
   background-color: var(--black);
@@ -240,7 +240,7 @@
 }
 
 .auth-link {
-  color: var(--primary-orange);
+  color: var(--primary-teal);
   font-weight: 700;
   text-decoration: none;
   transition: all 0.3s ease;
@@ -248,13 +248,13 @@
 }
 
 .auth-link:hover {
-  color: var(--primary-orange-dark);
-  border-bottom-color: var(--primary-orange-dark);
+  color: var(--primary-teal-dark);
+  border-bottom-color: var(--primary-teal-dark);
 }
 
 .alert {
   padding: 14px 18px;
-  border-radius: 10px;
+  border-radius: 0px;
   margin-bottom: 24px;
   font-size: 15px;
   font-weight: 500;
@@ -329,7 +329,7 @@
   }
   
   .auth-submit {
-    padding: 16px 20px;
+    padding: 12px 16px;
     font-size: 16px;
   }
 }

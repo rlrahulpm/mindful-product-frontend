@@ -6,13 +6,13 @@
   background-color: var(--white);
   box-shadow: var(--shadow-sm);
   z-index: 1000;
-  border-bottom: 2px solid var(--primary-orange-light);
+  border-bottom: 1px solid var(--border-light);
 }
 
 .navbar-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 16px 20px;
+  padding: var(--spacing-lg) var(--spacing-2xl);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -21,25 +21,26 @@
 .navbar-brand {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--spacing-md);
   text-decoration: none;
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 700;
-  color: var(--black);
-  transition: transform 0.3s ease;
+  color: var(--text-primary);
+  transition: transform 0.2s ease;
 }
 
 .navbar-brand:hover {
-  transform: scale(1.05);
+  transform: scale(1.02);
+  color: var(--primary-teal);
 }
 
 .brand-icon {
-  color: var(--primary-orange);
+  color: var(--primary-teal);
   font-size: 1.5rem;
 }
 
 .brand-text {
-  color: var(--black);
+  color: var(--text-primary);
 }
 
 .navbar-product-name {
@@ -48,76 +49,83 @@
   transform: translateX(-50%);
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--spacing-md);
 }
 
 .product-separator {
-  color: var(--gray-light);
-  font-size: 1.2rem;
+  color: var(--text-tertiary);
+  font-size: 1.125rem;
 }
 
 .navbar-product-name .product-name {
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 600;
-  color: var(--primary-orange);
+  color: var(--primary-teal);
 }
 
 .navbar-menu {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: var(--spacing-xl);
 }
 
 /* Removed old navbar-user and navbar-email styles - now using hamburger menu */
 
 .navbar-auth {
   display: flex;
-  gap: 12px;
+  gap: var(--spacing-md);
 }
 
 .btn-nav {
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-size: 15px;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
   font-weight: 500;
   text-decoration: none;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   cursor: pointer;
-  border: none;
-  display: inline-block;
+  border: 1px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
 }
 
 .btn-nav-primary {
-  background-color: var(--primary-orange);
+  background-color: var(--primary-teal);
   color: var(--white);
+  border-color: var(--primary-teal);
 }
 
 .btn-nav-primary:hover {
-  background-color: var(--primary-orange-dark);
-  transform: translateY(-2px);
+  background-color: var(--primary-teal-dark);
+  border-color: var(--primary-teal-dark);
+  transform: translateY(-1px);
   box-shadow: var(--shadow-md);
 }
 
 .btn-nav-secondary {
   background-color: transparent;
-  color: var(--primary-orange);
-  border: 2px solid var(--primary-orange);
+  color: var(--primary-teal);
+  border-color: var(--border-medium);
 }
 
 .btn-nav-secondary:hover {
-  background-color: var(--primary-orange);
-  color: var(--white);
-  transform: translateY(-2px);
+  background-color: var(--primary-teal-subtle);
+  color: var(--primary-teal-dark);
+  border-color: var(--primary-teal);
 }
 
 .btn-nav-logout {
-  background-color: var(--black);
+  background-color: var(--gray-700);
   color: var(--white);
+  border-color: var(--gray-700);
 }
 
 .btn-nav-logout:hover {
-  background-color: var(--gray-dark);
-  transform: translateY(-2px);
+  background-color: var(--gray-800);
+  border-color: var(--gray-800);
+  transform: translateY(-1px);
   box-shadow: var(--shadow-md);
 }
 
@@ -147,8 +155,8 @@
 .hamburger-line {
   width: 100%;
   height: 3px;
-  background-color: var(--primary-orange);
-  transition: all 0.3s ease;
+  background-color: var(--primary-teal);
+  transition: all 0.2s ease;
   transform-origin: center;
   border-radius: 2px;
 }
@@ -170,13 +178,13 @@
   top: 45px;
   right: 0;
   background-color: var(--white);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
-  border: 1px solid var(--gray-lighter);
+  border: 1px solid var(--border-light);
   min-width: 250px;
   z-index: 1000;
   overflow: hidden;
-  animation: slideDown 0.3s ease-out;
+  animation: slideDown 0.2s ease-out;
 }
 
 @keyframes slideDown {
@@ -193,71 +201,71 @@
 .menu-item {
   display: flex;
   align-items: center;
-  padding: 16px 20px;
+  padding: var(--spacing-lg) var(--spacing-xl);
   text-decoration: none;
-  color: var(--black);
+  color: var(--text-primary);
   border: none;
   background: none;
   width: 100%;
   cursor: pointer;
   transition: background-color 0.2s ease;
-  font-size: 15px;
+  font-size: 0.875rem;
 }
 
 .menu-item:hover {
-  background-color: var(--gray-lighter);
+  background-color: var(--gray-100);
 }
 
 .menu-email {
   flex-direction: column;
   align-items: flex-start;
-  gap: 4px;
-  background-color: var(--primary-orange-light);
+  gap: var(--spacing-xs);
+  background-color: var(--primary-teal-light);
   cursor: default;
 }
 
 .menu-email:hover {
-  background-color: var(--primary-orange-light);
+  background-color: var(--primary-teal-light);
 }
 
 .menu-label {
-  font-size: 12px;
-  color: var(--gray-dark);
+  font-size: 0.75rem;
+  color: var(--text-secondary);
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .menu-value {
-  font-size: 14px;
-  color: var(--black);
+  font-size: 0.875rem;
+  color: var(--text-primary);
   font-weight: 600;
 }
 
 .menu-icon {
-  margin-right: 12px;
+  margin-right: var(--spacing-md);
   font-size: 18px;
 }
 
 .menu-link {
-  color: var(--primary-orange);
+  color: var(--primary-teal);
   font-weight: 500;
 }
 
 .menu-link:hover {
-  background-color: rgba(217, 127, 90, 0.1);
-  color: var(--primary-orange);
+  background-color: var(--primary-teal-subtle);
+  color: var(--primary-teal-dark);
 }
 
 .menu-button {
-  color: var(--red);
+  color: var(--error);
   font-weight: 500;
-  border-top: 1px solid var(--gray-lighter);
+  border-top: 1px solid var(--border-light);
 }
 
 .menu-button:hover {
-  background-color: var(--red-light);
-  color: var(--red-dark);
+  background-color: var(--error-light);
+  color: var(--error-dark);
 }
 
 @media (max-width: 768px) {

@@ -21,6 +21,7 @@ const RoadmapPlanner = React.lazy(() => import('./components/RoadmapPlanner'));
 const RoadmapVisualization = React.lazy(() => import('./components/RoadmapVisualization'));
 const CapacityPlanning = React.lazy(() => import('./components/CapacityPlanning'));
 const KanbanBoard = React.lazy(() => import('./components/KanbanBoard'));
+const ResourcePlanningPage = React.lazy(() => import('./components/ResourcePlanning/ResourcePlanningPage'));
 const AdminDashboard = React.lazy(() => import('./components/AdminDashboard'));
 
 function App() {
@@ -142,21 +143,29 @@ function App() {
                 </PrivateRoute>
               } 
             />
-            <Route 
-              path="/products/:productSlug/modules/capacity-planning" 
+            <Route
+              path="/products/:productSlug/modules/capacity-planning"
               element={
                 <PrivateRoute>
                   <CapacityPlanning />
                 </PrivateRoute>
-              } 
+              }
             />
-            <Route 
-              path="/admin" 
+            <Route
+              path="/products/:productSlug/modules/resource-planning"
+              element={
+                <PrivateRoute>
+                  <ResourcePlanningPage />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/admin"
               element={
                 <SuperadminRoute>
                   <AdminDashboard />
                 </SuperadminRoute>
-              } 
+              }
             />
               </Routes>
             </Suspense>

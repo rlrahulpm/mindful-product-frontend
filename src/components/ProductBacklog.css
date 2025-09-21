@@ -33,9 +33,9 @@
 }
 
 .back-button {
-  background: rgba(217, 127, 90, 0.08);
+  background: rgba(90, 155, 151, 0.08);
   border: none;
-  color: var(--primary-orange);
+  color: var(--primary-teal);
   padding: 12px;
   border-radius: 50%;
   font-size: 14px;
@@ -73,10 +73,10 @@
 }
 
 .back-button:hover {
-  background: var(--primary-orange);
+  background: var(--primary-teal);
   color: var(--black);
   transform: translateY(-1px);
-  box-shadow: 0 8px 25px rgba(217, 127, 90, 0.3);
+  box-shadow: 0 8px 25px rgba(90, 155, 151, 0.3);
 }
 
 .back-button:hover .material-icons {
@@ -85,7 +85,7 @@
 
 .back-button:active {
   transform: translateY(0);
-  box-shadow: 0 4px 12px rgba(217, 127, 90, 0.2);
+  box-shadow: 0 4px 12px rgba(90, 155, 151, 0.2);
 }
 
 
@@ -106,7 +106,7 @@
 
 .product-backlog-container .module-title .material-icons {
   font-size: 2rem;
-  color: var(--primary-orange);
+  color: var(--primary-teal);
 }
 
 .module-subtitle {
@@ -117,7 +117,7 @@
 }
 
 .product-name {
-  color: var(--primary-orange);
+  color: var(--primary-teal);
   font-weight: 600;
 }
 
@@ -143,8 +143,8 @@
 }
 
 .form-section:hover {
-  border-color: rgba(217, 127, 90, 0.2);
-  box-shadow: 0 8px 40px rgba(217, 127, 90, 0.08);
+  border-color: rgba(90, 155, 151, 0.2);
+  box-shadow: 0 8px 40px rgba(90, 155, 151, 0.08);
 }
 
 .section-header {
@@ -157,7 +157,7 @@
 .section-icon {
   width: 64px;
   height: 64px;
-  background: rgba(217, 127, 90, 0.1);
+  background: rgba(90, 155, 151, 0.1);
   border-radius: 16px;
   display: flex;
   align-items: center;
@@ -167,7 +167,7 @@
 
 .section-icon .material-icons {
   font-size: 1.5rem;
-  color: var(--primary-orange);
+  color: var(--primary-teal);
 }
 
 .section-info {
@@ -219,8 +219,8 @@
 .search-input {
   width: 100%;
   padding: 14px 18px 14px 50px;
-  border: 2px solid var(--gray-lighter);
-  border-radius: 12px;
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
   font-size: 15px;
   transition: all 0.3s ease;
   background: var(--white);
@@ -229,8 +229,8 @@
 
 .search-input:focus {
   outline: none;
-  border-color: var(--primary-orange);
-  box-shadow: 0 0 0 3px rgba(217, 127, 90, 0.1);
+  border-color: var(--primary-teal);
+  box-shadow: 0 0 0 3px rgba(90, 155, 151, 0.1);
 }
 
 .search-input::placeholder {
@@ -253,8 +253,8 @@
 }
 
 .clear-search-btn:hover {
-  color: var(--primary-orange);
-  background: rgba(217, 127, 90, 0.1);
+  color: var(--primary-teal);
+  background: rgba(90, 155, 151, 0.1);
 }
 
 .filter-row {
@@ -279,8 +279,8 @@
 
 .filter-select {
   padding: 12px 40px 12px 16px;
-  border: 2px solid var(--gray-lighter);
-  border-radius: 12px;
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
   font-size: 14px;
   background: var(--white) url('data:image/svg+xml;utf8,<svg fill="%23666" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>') no-repeat right 12px center;
   background-size: 18px;
@@ -294,8 +294,8 @@
 
 .filter-select:focus {
   outline: none;
-  border-color: var(--primary-orange);
-  box-shadow: 0 0 0 3px rgba(217, 127, 90, 0.1);
+  border-color: var(--primary-teal);
+  box-shadow: 0 0 0 3px rgba(90, 155, 151, 0.1);
 }
 
 .clear-filters-btn {
@@ -328,7 +328,7 @@
 .clear-filters-link {
   background: none;
   border: none;
-  color: var(--primary-orange);
+  color: var(--primary-teal);
   cursor: pointer;
   text-decoration: underline;
   margin-left: 8px;
@@ -338,7 +338,7 @@
 }
 
 .clear-filters-link:hover {
-  color: var(--primary-orange-dark);
+  color: var(--primary-teal-dark);
 }
 
 .epics-container {
@@ -346,8 +346,8 @@
 }
 
 .epic-item {
-  background: rgba(217, 127, 90, 0.02);
-  border: 2px solid rgba(217, 127, 90, 0.1);
+  background: rgba(90, 155, 151, 0.02);
+  border: 2px solid rgba(90, 155, 151, 0.1);
   border-radius: 16px;
   padding: 24px;
   margin-bottom: 20px;
@@ -355,8 +355,8 @@
 }
 
 .epic-item:hover {
-  border-color: rgba(217, 127, 90, 0.3);
-  box-shadow: 0 8px 32px rgba(217, 127, 90, 0.08);
+  border-color: rgba(90, 155, 151, 0.3);
+  box-shadow: 0 8px 32px rgba(90, 155, 151, 0.08);
 }
 
 .epic-inputs {
@@ -376,8 +376,8 @@
 
 .epic-name-input, .epic-description-input, .epic-description-textarea {
   padding: 14px 18px;
-  border: 2px solid var(--gray-lighter);
-  border-radius: 12px;
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
   font-size: 15px;
   transition: all 0.3s ease;
   background: var(--white);
@@ -392,23 +392,23 @@
 
 /* Rich Text Editor Styles */
 .rich-text-editor {
-  border: 2px solid var(--gray-lighter);
-  border-radius: 12px;
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
   overflow: hidden;
   background: var(--white);
   transition: all 0.3s ease;
 }
 
 .rich-text-editor:focus-within {
-  border-color: var(--primary-orange);
-  box-shadow: 0 0 0 3px rgba(217, 127, 90, 0.1);
+  border-color: var(--primary-teal);
+  box-shadow: 0 0 0 3px rgba(90, 155, 151, 0.1);
 }
 
 .rich-text-toolbar {
   display: flex;
   align-items: center;
   padding: 8px 12px;
-  background: rgba(217, 127, 90, 0.05);
+  background: rgba(90, 155, 151, 0.05);
   border-bottom: 1px solid var(--gray-lighter);
   gap: 4px;
 }
@@ -429,12 +429,12 @@
 }
 
 .toolbar-btn:hover {
-  background: rgba(217, 127, 90, 0.1);
-  color: var(--primary-orange);
+  background: rgba(90, 155, 151, 0.1);
+  color: var(--primary-teal);
 }
 
 .toolbar-btn:active {
-  background: rgba(217, 127, 90, 0.2);
+  background: rgba(90, 155, 151, 0.2);
 }
 
 .toolbar-btn .material-icons {
@@ -443,8 +443,8 @@
 
 .toolbar-select {
   padding: 6px 8px;
-  border: 1px solid var(--gray-lighter);
-  border-radius: 4px;
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
   background: var(--white);
   font-size: 13px;
   cursor: pointer;
@@ -453,12 +453,12 @@
 }
 
 .toolbar-select:hover {
-  border-color: var(--primary-orange);
+  border-color: var(--primary-teal);
 }
 
 .toolbar-select:focus {
-  border-color: var(--primary-orange);
-  box-shadow: 0 0 0 2px rgba(217, 127, 90, 0.1);
+  border-color: var(--primary-teal);
+  box-shadow: 0 0 0 2px rgba(90, 155, 151, 0.1);
 }
 
 .toolbar-separator {
@@ -544,14 +544,14 @@
 
 .epic-name-input:focus, .epic-description-input:focus, .epic-description-textarea:focus {
   outline: none;
-  border-color: var(--primary-orange);
-  box-shadow: 0 0 0 3px rgba(217, 127, 90, 0.1);
+  border-color: var(--primary-teal);
+  box-shadow: 0 0 0 3px rgba(90, 155, 151, 0.1);
 }
 
 .epic-theme-select, .epic-initiative-select, .epic-track-select {
   padding: 14px 40px 14px 18px;
-  border: 2px solid var(--gray-lighter);
-  border-radius: 12px;
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
   font-size: 15px;
   background: var(--white) url('data:image/svg+xml;utf8,<svg fill="%23666" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>') no-repeat right 12px center;
   background-size: 20px;
@@ -565,8 +565,8 @@
 
 .epic-theme-select:focus, .epic-initiative-select:focus, .epic-track-select:focus {
   outline: none;
-  border-color: var(--primary-orange);
-  box-shadow: 0 0 0 3px rgba(217, 127, 90, 0.1);
+  border-color: var(--primary-teal);
+  box-shadow: 0 0 0 3px rgba(90, 155, 151, 0.1);
 }
 
 .epic-meta {
@@ -574,7 +574,7 @@
   align-items: center;
   justify-content: space-between;
   padding-top: 16px;
-  border-top: 1px solid rgba(217, 127, 90, 0.15);
+  border-top: 1px solid rgba(90, 155, 151, 0.15);
 }
 
 .epic-badges {
@@ -601,8 +601,8 @@
 }
 
 .epic-menu-btn:hover {
-  background: rgba(217, 127, 90, 0.1);
-  color: var(--primary-orange);
+  background: rgba(90, 155, 151, 0.1);
+  color: var(--primary-teal);
 }
 
 .epic-dropdown {
@@ -632,7 +632,7 @@
 }
 
 .epic-dropdown-item:hover {
-  background: rgba(217, 127, 90, 0.05);
+  background: rgba(90, 155, 151, 0.05);
 }
 
 .epic-dropdown-item.delete {
@@ -650,9 +650,9 @@
   gap: 12px;
   padding: 10px 20px;
   background: transparent;
-  border: 1px solid var(--primary-orange);
-  border-radius: 30px;
-  color: var(--primary-orange);
+  border: 1px solid var(--primary-teal);
+  border-radius: 10px;
+  color: var(--primary-teal);
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
@@ -660,10 +660,8 @@
 }
 
 .add-epic-btn:hover {
-  background: var(--primary-orange);
+  background: var(--primary-teal);
   color: var(--white);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(217, 127, 90, 0.3);
 }
 
 /* Table Styles */
@@ -683,8 +681,8 @@
 }
 
 .epics-table thead {
-  background: rgba(217, 127, 90, 0.05);
-  border-bottom: 2px solid rgba(217, 127, 90, 0.1);
+  background: rgba(90, 155, 151, 0.05);
+  border-bottom: 2px solid rgba(90, 155, 151, 0.1);
 }
 
 .epics-table th {
@@ -708,7 +706,7 @@
 }
 
 .epics-table tbody tr:hover {
-  background: rgba(217, 127, 90, 0.02);
+  background: rgba(90, 155, 151, 0.02);
 }
 
 .epics-table tbody tr:last-child {
@@ -758,7 +756,7 @@
   background: none;
   border: none;
   font-weight: 600;
-  color: var(--primary-orange);
+  color: var(--primary-teal);
   line-height: 1.4;
   cursor: pointer;
   text-align: left;
@@ -771,12 +769,12 @@
 }
 
 .epic-name-btn:hover {
-  color: var(--primary-orange-dark);
-  text-decoration-color: var(--primary-orange);
+  color: var(--primary-teal-dark);
+  text-decoration-color: var(--primary-teal);
 }
 
 .epic-name-btn:focus {
-  outline: 2px solid var(--primary-orange);
+  outline: 2px solid var(--primary-teal);
   outline-offset: 2px;
   border-radius: 4px;
 }
@@ -795,7 +793,7 @@
   padding: 60px 20px;
   background: var(--white);
   border-radius: 16px;
-  border: 2px dashed rgba(217, 127, 90, 0.2);
+  border: 2px dashed rgba(90, 155, 151, 0.2);
 }
 
 /* Badge styles only for modal view */
@@ -850,7 +848,7 @@
 }
 
 .save-btn {
-  background: linear-gradient(135deg, var(--primary-orange), var(--primary-orange-dark));
+  background: linear-gradient(135deg, var(--primary-teal), var(--primary-teal-dark));
   color: var(--white);
   border: none;
   padding: 16px 32px;
@@ -864,12 +862,12 @@
   gap: 12px;
   min-width: 220px;
   justify-content: center;
-  box-shadow: 0 4px 16px rgba(217, 127, 90, 0.2);
+  box-shadow: 0 4px 16px rgba(90, 155, 151, 0.2);
 }
 
 .save-btn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 32px rgba(217, 127, 90, 0.4);
+  box-shadow: 0 8px 32px rgba(90, 155, 151, 0.4);
 }
 
 .save-btn:disabled {
@@ -911,8 +909,8 @@
 .spinner {
   width: 48px;
   height: 48px;
-  border: 4px solid rgba(217, 127, 90, 0.2);
-  border-left-color: var(--primary-orange);
+  border: 4px solid rgba(90, 155, 151, 0.2);
+  border-left-color: var(--primary-teal);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 20px;
@@ -1003,9 +1001,9 @@
 }
 
 .product-backlog-modal-close-btn {
-  background: rgba(217, 127, 90, 0.1);
-  border: 2px solid var(--primary-orange);
-  color: var(--primary-orange);
+  background: rgba(90, 155, 151, 0.1);
+  border: 2px solid var(--primary-teal);
+  color: var(--primary-teal);
   cursor: pointer;
   padding: 8px;
   border-radius: 8px;
@@ -1018,10 +1016,10 @@
 }
 
 .product-backlog-modal-close-btn:hover {
-  background: var(--primary-orange);
+  background: var(--primary-teal);
   color: var(--white);
   transform: translateY(-1px);
-  box-shadow: 0 6px 24px rgba(217, 127, 90, 0.3);
+  box-shadow: 0 6px 24px rgba(90, 155, 151, 0.3);
 }
 
 .product-backlog-modal-body {
@@ -1091,10 +1089,10 @@
 /* Using specific button styles for ProductBacklog modals */
 .modal-btn-primary {
   padding: 6px 20px;
-  background: rgba(217, 127, 90, 0.1);
-  color: var(--primary-orange);
-  border: 2px solid var(--primary-orange);
-  border-radius: 50px;
+  background: rgba(90, 155, 151, 0.1);
+  color: var(--primary-teal);
+  border: 1px solid var(--primary-teal);
+  border-radius: 10px;
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
@@ -1105,10 +1103,8 @@
 }
 
 .modal-btn-primary:hover:not(:disabled) {
-  background: var(--primary-orange);
+  background: var(--primary-teal);
   color: var(--white);
-  transform: translateY(-1px);
-  box-shadow: 0 6px 24px rgba(217, 127, 90, 0.3);
 }
 
 .modal-btn-primary:disabled {
@@ -1147,9 +1143,9 @@
 
 .btn-close {
   padding: 6px 20px;
-  background: rgba(217, 127, 90, 0.1);
-  color: var(--primary-orange);
-  border: 2px solid var(--primary-orange);
+  background: rgba(90, 155, 151, 0.1);
+  color: var(--primary-teal);
+  border: 2px solid var(--primary-teal);
   border-radius: 50px;
   font-size: 13px;
   font-weight: 500;
@@ -1161,10 +1157,10 @@
 }
 
 .btn-close:hover:not(:disabled) {
-  background: var(--primary-orange);
+  background: var(--primary-teal);
   color: var(--white);
   transform: translateY(-1px);
-  box-shadow: 0 6px 24px rgba(217, 127, 90, 0.3);
+  box-shadow: 0 6px 24px rgba(90, 155, 151, 0.3);
 }
 
 .btn-close:disabled {
@@ -1662,8 +1658,8 @@
 
 .story-priority-select {
   padding: 8px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
   font-size: 14px;
   min-width: 100px;
 }
@@ -1738,7 +1734,7 @@
 }
 
 .story-save-btn {
-  background-color: var(--primary-orange);
+  background-color: var(--primary-teal);
   color: white;
   border: none;
 }

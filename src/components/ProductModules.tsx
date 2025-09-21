@@ -142,6 +142,7 @@ const ProductModules: React.FC = () => {
             className={`module-card ${productModule.isEnabled ? 'enabled clickable' : 'disabled'}`}
             onClick={() => {
               if (productModule.isEnabled) {
+                console.log('Clicked module name:', `"${productModule.module.name}"`);
                 window.scrollTo(0, 0);
                 if (productModule.module.name === 'Product Basics') {
                   navigate(`/products/${productSlug}/modules/basics`);
@@ -159,20 +160,25 @@ const ProductModules: React.FC = () => {
                   navigate(`/products/${productSlug}/modules/capacity-planning`);
                 } else if (productModule.module.name === 'Kanban Board') {
                   navigate(`/products/${productSlug}/modules/kanban`);
+                } else if (productModule.module.name === 'Resource Planning') {
+                  navigate(`/products/${productSlug}/modules/resource-planning`);
+                } else {
+                  console.log('No navigation match found for:', productModule.module.name);
                 }
               }
             }}
           >
             <div className="module-icon">
               <span className="material-icons">
-                {productModule.module.name === 'Product Basics' ? 'assignment' : 
+                {productModule.module.name === 'Product Basics' ? 'assignment' :
                  productModule.module.name === 'Market & Competition Analysis' ? 'analytics' :
                  productModule.module.name === 'Product Hypothesis' ? 'lightbulb' :
                  productModule.module.name === 'Product Backlog' ? 'list_alt' :
                  productModule.module.name === 'Kanban Board' ? 'view_kanban' :
                  productModule.module.name === 'Roadmap Planner' ? 'timeline' :
                  productModule.module.name === 'Roadmap' ? 'view_timeline' :
-                 productModule.module.name === 'Capacity Planning' ? 'groups' : 'extension'}
+                 productModule.module.name === 'Capacity Planning' ? 'groups' :
+                 productModule.module.name === 'Resource Planning' ? 'group' : 'extension'}
               </span>
             </div>
             <div className="module-content">

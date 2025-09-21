@@ -27,8 +27,8 @@
 }
 
 .back-button {
-  background: rgba(217, 127, 90, 0.08);
-  color: var(--primary-orange);
+  background: rgba(90, 155, 151, 0.08);
+  color: var(--primary-teal);
   border: none;
   padding: 12px;
   border-radius: 50%;
@@ -67,10 +67,10 @@
 }
 
 .back-button:hover {
-  background: var(--primary-orange);
+  background: var(--primary-teal);
   color: var(--black);
   transform: translateY(-1px);
-  box-shadow: 0 8px 25px rgba(217, 127, 90, 0.3);
+  box-shadow: 0 8px 25px rgba(90, 155, 151, 0.3);
 }
 
 .back-button:hover .material-icons {
@@ -79,7 +79,7 @@
 
 .back-button:active {
   transform: translateY(0);
-  box-shadow: 0 4px 12px rgba(217, 127, 90, 0.2);
+  box-shadow: 0 4px 12px rgba(90, 155, 151, 0.2);
 }
 
 .roadmap-viz-page-title {
@@ -125,9 +125,9 @@
 }
 
 .roadmap-viz-container .mode-btn.active {
-  background: var(--primary-orange);
+  background: var(--primary-teal);
   color: var(--white);
-  box-shadow: 0 2px 8px rgba(217, 127, 90, 0.3);
+  box-shadow: 0 2px 8px rgba(90, 155, 151, 0.3);
 }
 
 
@@ -159,15 +159,15 @@
 }
 
 .quarter-select:hover {
-  border-color: rgba(217, 127, 90, 0.3);
+  border-color: rgba(90, 155, 151, 0.3);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.06);
   transform: translateY(-1px);
 }
 
 .quarter-select:focus {
   outline: none;
-  border-color: var(--primary-orange);
-  box-shadow: 0 0 0 3px rgba(217, 127, 90, 0.15), 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-color: var(--primary-teal);
+  box-shadow: 0 0 0 3px rgba(90, 155, 151, 0.15), 0 4px 12px rgba(0, 0, 0, 0.1);
   transform: translateY(-1px);
 }
 
@@ -204,7 +204,7 @@
 }
 
 .roadmap-viz-container .quarter-header {
-  background: linear-gradient(135deg, var(--primary-orange) 0%, #c96a4a 100%);
+  background: linear-gradient(135deg, var(--primary-teal) 0%, #c96a4a 100%);
   color: var(--white);
   padding: 16px 20px;
 }
@@ -264,7 +264,7 @@
   border-radius: 8px;
   padding: 16px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  border-left: 4px solid var(--primary-orange);
+  border-left: 4px solid var(--primary-teal);
   transition: all 0.3s ease;
 }
 
@@ -349,7 +349,7 @@
 .metric-value {
   color: var(--black);
   font-weight: 600;
-  background: rgba(217, 127, 90, 0.1);
+  background: rgba(90, 155, 151, 0.1);
   padding: 2px 6px;
   border-radius: 4px;
 }
@@ -425,7 +425,7 @@
 .gantt-header-bar {
   width: 3px;
   height: 20px;
-  background: var(--primary-orange);
+  background: var(--primary-teal);
   border-radius: 2px;
   flex-shrink: 0;
 }
@@ -556,7 +556,7 @@
 .gantt-group.new-initiative {
   margin-top: 16px;
   padding-top: 8px;
-  border-top: 2px solid rgba(217, 127, 90, 0.2);
+  border-top: 2px solid rgba(90, 155, 151, 0.2);
 }
 
 .gantt-group.new-initiative:first-child {
@@ -598,10 +598,10 @@
   font-size: 13px !important;
   font-weight: 600 !important;
   color: var(--black) !important;
-  background: rgba(217, 127, 90, 0.1);
+  background: rgba(90, 155, 151, 0.1);
   padding: 6px 10px;
   border-radius: 4px;
-  border-left: 3px solid var(--primary-orange);
+  border-left: 3px solid var(--primary-teal);
 }
 
 .gantt-item-row:hover {
@@ -771,7 +771,7 @@
   width: 40px;
   height: 40px;
   border: 3px solid var(--gray-lighter);
-  border-top: 3px solid var(--primary-orange);
+  border-top: 3px solid var(--primary-teal);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 16px;
@@ -802,7 +802,7 @@
 }
 
 .roadmap-viz-btn-primary {
-  background: var(--primary-orange);
+  background: var(--primary-teal);
   color: var(--white);
 }
 

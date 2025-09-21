@@ -17,6 +17,12 @@
   --gray-100: #F5F5F5;
   --gray-50: #FAFAFA;
 
+  --black: #000000;
+  --gray-dark: var(--gray-700);
+  --gray-medium: var(--gray-500);
+  --gray-light: var(--gray-400);
+  --gray-lighter: var(--gray-200);
+
   --white: #FFFFFF;
   --background: #FCFCFC;
   --surface: #FFFFFF;
