@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { adminService } from '../services/adminService';
-import { Role, User, ProductModuleResponse, CreateRoleRequest, CreateUserRequest } from '../types/admin';
+import { Role, User, ProductModuleResponse, CreateRoleRequest, CreateUserWithoutPasswordRequest, CreateUserWithTokenResponse } from '../types/admin';
 import './AdminDashboard.css';
 
 const AdminDashboard: React.FC = () => {
@@ -22,6 +22,8 @@ const AdminDashboard: React.FC = () => {
   const [showEditUserModal, setShowEditUserModal] = useState(false);
   const [showDeleteRoleModal, setShowDeleteRoleModal] = useState(false);
   const [showDeleteUserModal, setShowDeleteUserModal] = useState(false);
+  const [showSetupLinkModal, setShowSetupLinkModal] = useState(false);
+  const [setupLinkData, setSetupLinkData] = useState<CreateUserWithTokenResponse | null>(null);
   const [editingRole, setEditingRole] = useState<Role | null>(null);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [roleToDelete, setRoleToDelete] = useState<Role | null>(null);
@@ -36,9 +38,8 @@ const AdminDashboard: React.FC = () => {
     description: '',
     productModuleIds: []
   });
-  const [userForm, setUserForm] = useState<CreateUserRequest>({
+  const [userForm, setUserForm] = useState<CreateUserWithoutPasswordRequest>({
     email: '',
-    password: '',
     roleId: undefined
   });
   const [editUserForm, setEditUserForm] = useState<{ roleId: number | undefined }>({
@@ -155,19 +156,46 @@ const AdminDashboard: React.FC = () => {
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const newUser = await adminService.createUser(userForm);
-      setUsers([...users, newUser]);
+      const response = await adminService.createUser(userForm);
+      setUsers([...users, response.user]);
       setShowUserModal(false);
-      setUserForm({ email: '', password: '', roleId: undefined });
-      setSuccessMessage('User created successfully!');
-      
-      // Clear success message after 3 seconds
-      setTimeout(() => setSuccessMessage(''), 3000);
+      setUserForm({ email: '', roleId: undefined });
+
+      // Show the setup link modal
+      setSetupLinkData(response);
+      setShowSetupLinkModal(true);
+
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || err.message || 'Failed to create user';
       setError(errorMessage);
       setTimeout(() => setError(''), 5000);
     }
+  };
+
+  const handleGenerateResetLink = async (userId: number) => {
+    try {
+      const response = await adminService.generatePasswordResetLink(userId);
+      setSetupLinkData({
+        user: users.find(u => u.id === userId)!,
+        setupLink: response.resetLink,
+        token: response.token
+      });
+      setShowSetupLinkModal(true);
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || err.message || 'Failed to generate reset link';
+      setError(errorMessage);
+      setTimeout(() => setError(''), 5000);
+    }
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text).then(() => {
+      setSuccessMessage('Link copied to clipboard!');
+      setTimeout(() => setSuccessMessage(''), 2000);
+    }).catch(() => {
+      setError('Failed to copy to clipboard');
+      setTimeout(() => setError(''), 3000);
+    });
   };
 
   const deleteRole = (role: Role) => {
@@ -523,14 +551,21 @@ const AdminDashboard: React.FC = () => {
                         </span>
                       </td>
                       <td className="user-actions-cell">
-                        <button 
+                        <button
                           onClick={() => openEditUser(user)}
                           className="table-action-btn edit-btn"
                           title="Edit User"
                         >
                           <span className="material-icons">edit</span>
                         </button>
-                        <button 
+                        <button
+                          onClick={() => handleGenerateResetLink(user.id)}
+                          className="table-action-btn reset-btn"
+                          title="Generate Password Reset Link"
+                        >
+                          <span className="material-icons">link</span>
+                        </button>
+                        <button
                           onClick={() => deleteUser(user)}
                           className="table-action-btn delete-btn"
                           title="Delete User"
@@ -789,7 +824,7 @@ const AdminDashboard: React.FC = () => {
       {showUserModal && (
         <div className="modal-overlay" onClick={() => {
           setShowUserModal(false);
-          setUserForm({ email: '', password: '', roleId: undefined });
+          setUserForm({ email: '', roleId: undefined });
         }}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
@@ -800,7 +835,7 @@ const AdminDashboard: React.FC = () => {
               <button 
                 onClick={() => {
                   setShowUserModal(false);
-                  setUserForm({ email: '', password: '', roleId: undefined });
+                  setUserForm({ email: '', roleId: undefined });
                 }}
                 className="modal-close-btn"
               >
@@ -825,21 +860,9 @@ const AdminDashboard: React.FC = () => {
                   />
                 </div>
                 
-                <div className="form-group">
-                  <label htmlFor="userPassword" className="form-label">
-                    <span className="material-icons">lock</span>
-                    Password
-                  </label>
-                  <input
-                    type="password"
-                    id="userPassword"
-                    value={userForm.password}
-                    onChange={(e) => setUserForm({ ...userForm, password: e.target.value })}
-                    placeholder="Enter password (min 6 characters)"
-                    required
-                    minLength={6}
-                    className="form-control"
-                  />
+                <div className="info-message">
+                  <span className="material-icons">info</span>
+                  The user will receive a password setup link via email to create their own password.
                 </div>
 
               <div className="form-group">
@@ -871,7 +894,7 @@ const AdminDashboard: React.FC = () => {
                 type="button"
                 onClick={() => {
                   setShowUserModal(false);
-                  setUserForm({ email: '', password: '', roleId: undefined });
+                  setUserForm({ email: '', roleId: undefined });
                 }}
                 className="btn-secondary"
               >
@@ -984,6 +1007,87 @@ const AdminDashboard: React.FC = () => {
                 <span className="hold-text">
                   {holdProgress >= 100 ? 'Deleting...' : 'Hold to Delete'}
                 </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Setup Link Modal */}
+      {showSetupLinkModal && setupLinkData && (
+        <div className="modal-overlay">
+          <div className="admin-modal-content setup-link-modal">
+            <div className="admin-modal-header">
+              <h3>
+                <span className="material-icons">link</span>
+                Password Setup Link Generated
+              </h3>
+              <button
+                onClick={() => {
+                  setShowSetupLinkModal(false);
+                  setSetupLinkData(null);
+                }}
+                className="admin-modal-close-btn"
+              >
+                <span className="material-icons">close</span>
+              </button>
+            </div>
+            <div className="admin-modal-body">
+              <div className="setup-link-info">
+                <div className="user-info">
+                  <span className="material-icons">account_circle</span>
+                  <div className="user-details">
+                    <div className="user-email">{setupLinkData.user.email}</div>
+                    <div className="user-status">Password setup link created</div>
+                  </div>
+                </div>
+
+                <div className="link-section">
+                  <h4>
+                    <span className="material-icons">link</span>
+                    Setup Link
+                  </h4>
+                  <div className="link-container">
+                    <input
+                      type="text"
+                      value={setupLinkData.setupLink}
+                      readOnly
+                      className="link-input"
+                      onClick={(e) => (e.target as HTMLInputElement).select()}
+                    />
+                    <button
+                      onClick={() => copyToClipboard(setupLinkData.setupLink)}
+                      className="copy-btn"
+                      title="Copy to clipboard"
+                    >
+                      <span className="material-icons">content_copy</span>
+                      Copy
+                    </button>
+                  </div>
+                </div>
+
+                <div className="link-instructions">
+                  <span className="material-icons">info</span>
+                  Share this link with the user to allow them to set their password. The link will expire in 24 hours and can only be used once.
+                </div>
+              </div>
+            </div>
+            <div className="admin-modal-footer">
+              <button
+                onClick={() => copyToClipboard(setupLinkData.setupLink)}
+                className="btn-primary"
+              >
+                <span className="material-icons">content_copy</span>
+                Copy Link
+              </button>
+              <button
+                onClick={() => {
+                  setShowSetupLinkModal(false);
+                  setSetupLinkData(null);
+                }}
+                className="btn-secondary"
+              >
+                Close
               </button>
             </div>
           </div>

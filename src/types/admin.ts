@@ -57,6 +57,40 @@ export interface CreateUserRequest {
   roleId?: number;
 }
 
+export interface CreateUserWithoutPasswordRequest {
+  email: string;
+  roleId?: number;
+}
+
+export interface CreateUserWithTokenResponse {
+  user: User;
+  setupLink: string;
+  token: string;
+}
+
+export interface GenerateResetTokenResponse {
+  resetLink: string;
+  token: string;
+  message: string;
+}
+
+export interface ValidateTokenResponse {
+  valid: boolean;
+  email?: string;
+  tokenType?: string;
+  message: string;
+}
+
+export interface SetPasswordRequest {
+  token: string;
+  password: string;
+}
+
+export interface PasswordSetSuccessResponse {
+  message: string;
+  email: string;
+}
+
 export interface UpdateUserRequest {
   roleId?: number;
 }

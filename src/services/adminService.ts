@@ -1,5 +1,5 @@
 import api from './api';
-import { Role, User, Module, ProductModuleResponse, CreateRoleRequest, UpdateRoleRequest, CreateUserRequest, UpdateUserRequest } from '../types/admin';
+import { Role, User, Module, ProductModuleResponse, CreateRoleRequest, UpdateRoleRequest, CreateUserRequest, CreateUserWithoutPasswordRequest, CreateUserWithTokenResponse, GenerateResetTokenResponse, UpdateUserRequest } from '../types/admin';
 
 export const adminService = {
   // Role management
@@ -28,8 +28,13 @@ export const adminService = {
     return response.data;
   },
 
-  createUser: async (userData: CreateUserRequest): Promise<User> => {
+  createUser: async (userData: CreateUserWithoutPasswordRequest): Promise<CreateUserWithTokenResponse> => {
     const response = await api.post('/admin/users', userData);
+    return response.data;
+  },
+
+  generatePasswordResetLink: async (userId: number): Promise<GenerateResetTokenResponse> => {
+    const response = await api.post(`/admin/users/${userId}/reset-password`);
     return response.data;
   },
 

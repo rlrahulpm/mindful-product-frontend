@@ -23,6 +23,7 @@ const CapacityPlanning = React.lazy(() => import('./components/CapacityPlanning'
 const KanbanBoard = React.lazy(() => import('./components/KanbanBoard'));
 const ResourcePlanningPage = React.lazy(() => import('./components/ResourcePlanning/ResourcePlanningPage'));
 const AdminDashboard = React.lazy(() => import('./components/AdminDashboard'));
+const SetPasswordPage = React.lazy(() => import('./components/SetPasswordPage'));
 
 function App() {
   useEffect(() => {
@@ -71,6 +72,7 @@ function App() {
               <Routes>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/set-password/:token" element={<SetPasswordPage />} />
             <Route 
               path="/dashboard" 
               element={
