@@ -79,12 +79,18 @@ const CapacityPlanning: React.FC = () => {
 
   useEffect(() => {
     window.scrollTo(0, 0);
+
+    // Cleanup on unmount - close all modals and unlock scroll
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.paddingRight = '';
+    };
   }, []);
 
   // Lock/unlock body scroll when modals are open
   useEffect(() => {
     const isAnyModalOpen = showSettingsModal || showTeamModal || editingRatingConfig !== null;
-    
+
     if (isAnyModalOpen) {
       // Lock body scroll
       document.body.style.overflow = 'hidden';
@@ -94,12 +100,6 @@ const CapacityPlanning: React.FC = () => {
       document.body.style.overflow = '';
       document.body.style.paddingRight = '';
     }
-
-    // Cleanup on unmount
-    return () => {
-      document.body.style.overflow = '';
-      document.body.style.paddingRight = '';
-    };
   }, [showSettingsModal, showTeamModal, editingRatingConfig]);
 
   useEffect(() => {

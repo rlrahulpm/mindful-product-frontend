@@ -316,7 +316,7 @@
   color: var(--primary-teal);
 }
 
-.modal-overlay {
+.resource-planning-modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -330,7 +330,7 @@
   padding: 20px;
 }
 
-.modal {
+.resource-planning-modal {
   background: var(--white);
   border-radius: 10px;
   padding: 40px;

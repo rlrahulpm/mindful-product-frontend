@@ -36,6 +36,32 @@ const ResourcePlanningPage: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState<'settings' | 'planning' | 'overview'>('settings');
 
+  // Force refresh page every time when navigating to Resource Planning
+  useEffect(() => {
+    const reloadKey = 'rp_reload_timestamp';
+    const lastReload = sessionStorage.getItem(reloadKey);
+    const now = Date.now();
+
+    // Only reload if last reload was more than 1 second ago (prevents infinite loop)
+    if (!lastReload || (now - parseInt(lastReload)) > 1000) {
+      sessionStorage.setItem(reloadKey, now.toString());
+      window.location.reload();
+    }
+  }, []);
+
+  // Force unlock body scroll on mount AND unmount (in case previous page left it locked)
+  useEffect(() => {
+    // Force unlock immediately on mount
+    document.body.style.overflow = '';
+    document.body.style.paddingRight = '';
+
+    // Also force unlock on unmount
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.paddingRight = '';
+    };
+  }, []);
+
   useEffect(() => {
     if (product && productSlug) {
       loadInitialData();

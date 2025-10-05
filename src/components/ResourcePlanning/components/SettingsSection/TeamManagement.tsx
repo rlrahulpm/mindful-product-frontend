@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ResourcePlanningState, Team, TeamMember, TeamRequest, TeamMemberRequest } from '../../../../types/resourcePlanning.types';
 import { resourcePlanningService } from '../../../../services/resourcePlanningService';
 
@@ -23,6 +23,27 @@ const TeamManagement: React.FC<TeamManagementProps> = ({
     role: '',
     email: ''
   });
+
+  // Lock/unlock body scroll when modals are open
+  useEffect(() => {
+    const isAnyModalOpen = showCreateTeam || showAddMember !== null;
+
+    if (isAnyModalOpen) {
+      // Lock body scroll
+      document.body.style.overflow = 'hidden';
+      document.body.style.paddingRight = '0px';
+    } else {
+      // Unlock body scroll
+      document.body.style.overflow = '';
+      document.body.style.paddingRight = '';
+    }
+
+    // Cleanup on unmount
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.paddingRight = '';
+    };
+  }, [showCreateTeam, showAddMember]);
 
   const handleCreateTeam = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,8 +95,8 @@ const TeamManagement: React.FC<TeamManagementProps> = ({
 
       {/* Create Team Modal */}
       {showCreateTeam && (
-        <div className="modal-overlay">
-          <div className="modal">
+        <div className="resource-planning-modal-overlay">
+          <div className="resource-planning-modal">
             <h3>Create New Team</h3>
             <form onSubmit={handleCreateTeam}>
               <div className="form-group">
