@@ -19,16 +19,11 @@ interface ProductHypothesisData {
 interface Initiative {
   id: string;
   title: string;
-  description: string;
-  priority: string;
-  timeline: string;
-  owner: string;
 }
 
 interface Theme {
   id: string;
   name: string;
-  description: string;
   color: string;
 }
 
@@ -155,11 +150,7 @@ const ProductHypothesis: React.FC = () => {
   const addInitiative = () => {
     const newInitiative: Initiative = {
       id: Date.now().toString(),
-      title: '',
-      description: '',
-      priority: 'Medium',
-      timeline: '',
-      owner: ''
+      title: ''
     };
     setInitiatives(prev => [...prev, newInitiative]);
   };
@@ -181,7 +172,6 @@ const ProductHypothesis: React.FC = () => {
     const newTheme: Theme = {
       id: Date.now().toString(),
       name: '',
-      description: '',
       color: '#D97F5A'
     };
     setThemes(prev => [...prev, newTheme]);
@@ -538,37 +528,6 @@ const ProductHypothesis: React.FC = () => {
                           placeholder="Initiative title"
                           className="initiative-title-input"
                         />
-                        <input
-                          type="text"
-                          value={initiative.description}
-                          onChange={(e) => updateInitiative(initiative.id, 'description', e.target.value)}
-                          placeholder="Description"
-                          className="initiative-description-input"
-                        />
-                        <select
-                          value={initiative.priority}
-                          onChange={(e) => updateInitiative(initiative.id, 'priority', e.target.value)}
-                          className="initiative-priority-input"
-                        >
-                          <option value="Low">Low Priority</option>
-                          <option value="Medium">Medium Priority</option>
-                          <option value="High">High Priority</option>
-                          <option value="Critical">Critical</option>
-                        </select>
-                        <input
-                          type="text"
-                          value={initiative.timeline}
-                          onChange={(e) => updateInitiative(initiative.id, 'timeline', e.target.value)}
-                          placeholder="Timeline (e.g., Q2 2024)"
-                          className="initiative-timeline-input"
-                        />
-                        <input
-                          type="text"
-                          value={initiative.owner}
-                          onChange={(e) => updateInitiative(initiative.id, 'owner', e.target.value)}
-                          placeholder="Owner/Team"
-                          className="initiative-owner-input"
-                        />
                       </div>
                       <div className="initiative-menu">
                         <button
@@ -612,28 +571,6 @@ const ProductHypothesis: React.FC = () => {
                       <div key={initiative.id} className="view-initiative-item">
                         <div className="view-initiative-header">
                           <span className="view-initiative-title">{initiative.title}</span>
-                          <span className={`priority-badge ${initiative.priority.toLowerCase()}`}>
-                            {initiative.priority}
-                          </span>
-                        </div>
-                        {initiative.description && (
-                          <div className="view-initiative-description">
-                            {initiative.description}
-                          </div>
-                        )}
-                        <div className="view-initiative-meta">
-                          {initiative.timeline && (
-                            <span className="timeline-info">
-                              <span className="material-icons">schedule</span>
-                              {initiative.timeline}
-                            </span>
-                          )}
-                          {initiative.owner && (
-                            <span className="owner-info">
-                              <span className="material-icons">person</span>
-                              {initiative.owner}
-                            </span>
-                          )}
                         </div>
                       </div>
                     ))
@@ -670,13 +607,6 @@ const ProductHypothesis: React.FC = () => {
                           onChange={(e) => updateTheme(theme.id, 'name', e.target.value)}
                           placeholder="Theme name"
                           className="theme-name-input"
-                        />
-                        <input
-                          type="text"
-                          value={theme.description}
-                          onChange={(e) => updateTheme(theme.id, 'description', e.target.value)}
-                          placeholder="Theme description"
-                          className="theme-description-input"
                         />
                         <input
                           type="color"
@@ -726,17 +656,12 @@ const ProductHypothesis: React.FC = () => {
                     themes.map((theme) => (
                       <div key={theme.id} className="view-theme-item">
                         <div className="view-theme-header">
-                          <div 
-                            className="theme-color-indicator" 
+                          <div
+                            className="theme-color-indicator"
                             style={{ backgroundColor: theme.color }}
                           ></div>
                           <span className="view-theme-name">{theme.name}</span>
                         </div>
-                        {theme.description && (
-                          <div className="view-theme-description">
-                            {theme.description}
-                          </div>
-                        )}
                       </div>
                     ))
                   ) : (

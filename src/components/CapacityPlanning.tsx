@@ -112,9 +112,9 @@ const CapacityPlanning: React.FC = () => {
 
   const loadTeams = async () => {
     if (!product) return;
-    
+
     try {
-      const response = await fetch(`http://localhost:8080/api/products/${product.productId}/capacity-planning/teams`, {
+      const response = await fetch(`http://localhost:8080/api/products/${product.productId}/capacity-planning/${selectedYear}/${selectedQuarter}/teams`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -233,9 +233,9 @@ const CapacityPlanning: React.FC = () => {
 
   const addTeam = async () => {
     if (!product || !newTeam.name.trim()) return;
-    
+
     try {
-      const response = await fetch(`http://localhost:8080/api/products/${product.productId}/capacity-planning/teams`, {
+      const response = await fetch(`http://localhost:8080/api/products/${product.productId}/capacity-planning/${selectedYear}/${selectedQuarter}/teams`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -280,9 +280,9 @@ const CapacityPlanning: React.FC = () => {
 
   const removeTeam = async (teamId: number) => {
     if (!product || !window.confirm('Are you sure you want to remove this team?')) return;
-    
+
     try {
-      const response = await fetch(`http://localhost:8080/api/products/${product.productId}/capacity-planning/teams/${teamId}`, {
+      const response = await fetch(`http://localhost:8080/api/products/${product.productId}/capacity-planning/${selectedYear}/${selectedQuarter}/teams/${teamId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -680,8 +680,15 @@ const CapacityPlanning: React.FC = () => {
         {epics.length === 0 ? (
           <div className="empty-state">
             <span className="material-icons">timeline</span>
-            <h3>No epics found for Q{selectedQuarter} {selectedYear}</h3>
-            <p>Add epics to your roadmap planner first, then come back to allocate capacity.</p>
+            <h3>No Epics or Teams for Q{selectedQuarter} {selectedYear}</h3>
+            {teams.length === 0 ? (
+              <p>
+                <strong>Start by adding teams:</strong> Click "Add Team" above to create teams for this quarter.
+                Once teams are added, epics from your roadmap will automatically appear here for capacity planning.
+              </p>
+            ) : (
+              <p>Add epics to your roadmap planner for Q{selectedQuarter} {selectedYear} first, then they will appear here for capacity allocation.</p>
+            )}
           </div>
         ) : (
           <div className="capacity-table-container">
