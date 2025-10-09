@@ -341,8 +341,30 @@ const ProductBacklog: React.FC = () => {
     }
   }, []);
 
-  const openViewEpicModal = (epic: Epic) => {
-    setViewingEpic(epic);
+  const openViewEpicModal = async (epic: Epic) => {
+    // Fetch user stories for this epic
+    let epicWithStories = { ...epic };
+
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/v3/products/${product?.productId}/epics/${epic.id}/user-stories`,
+        {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        }
+      );
+
+      if (response.ok) {
+        const stories = await response.json();
+        epicWithStories.userStories = stories;
+      }
+    } catch (error) {
+      console.warn('Failed to load user stories:', error);
+      epicWithStories.userStories = [];
+    }
+
+    setViewingEpic(epicWithStories);
     setShowViewEpicModal(true);
   };
 
@@ -433,57 +455,49 @@ const ProductBacklog: React.FC = () => {
         userStories: editModeUserStories
       };
 
-      // Update the epic in the epics array
-      const updatedEpics = epics.map(epic => 
-        epic.id === editingViewEpic.id ? epicToSave : epic
-      );
-
-      // Save to backend
-      const response = await fetch(`${API_BASE_URL}/v3/products/${product?.productId}/backlog`, {
-        method: 'POST',
+      // Save epic to backend using PUT (single epic update)
+      const response = await fetch(`${API_BASE_URL}/v3/products/${product?.productId}/backlog/${epicToSave.id}`, {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
-        body: JSON.stringify({
-          epics: JSON.stringify(updatedEpics)
-        })
+        body: JSON.stringify(epicToSave)
       });
 
       if (response.ok) {
-        const savedData = await response.json();
-        setProductBacklog(savedData);
+        const savedEpic = await response.json();
+        // Update the epic in the epics array
+        const updatedEpics = epics.map(epic =>
+          epic.id === savedEpic.id ? { ...epicToSave, ...savedEpic } : epic
+        );
         setEpics(updatedEpics);
-        setViewingEpic(epicToSave);
+        setViewingEpic({ ...epicToSave, ...savedEpic });
 
-        // Save user stories to backend if any exist
-        if (editModeUserStories.length > 0) {
+        // Handle user story deletions
+        // Find stories that were removed (exist in original but not in current)
+        const originalStories = viewingEpic?.userStories || [];
+        const currentStoryIds = new Set(editModeUserStories.map(s => s.id).filter(id => id));
+        const deletedStories = originalStories.filter(story => story.id && !currentStoryIds.has(story.id));
+
+        // Delete removed stories
+        if (deletedStories.length > 0) {
           try {
-            for (const story of editModeUserStories) {
-              const storyResponse = await fetch(
-                `${API_BASE_URL}/v3/products/${product?.productId}/epics/${epicToSave.id}/user-stories`,
-                {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                  },
-                  body: JSON.stringify({
-                    title: story.title,
-                    description: story.description || '',
-                    acceptanceCriteria: story.acceptanceCriteria || '',
-                    priority: story.priority,
-                    storyPoints: story.storyPoints
-                  })
-                }
-              );
-
-              if (!storyResponse.ok) {
-                console.warn('Failed to save user story:', story.title);
+            for (const story of deletedStories) {
+              if (story.id) {
+                await fetch(
+                  `${API_BASE_URL}/v3/products/${product?.productId}/user-stories/${story.id}`,
+                  {
+                    method: 'DELETE',
+                    headers: {
+                      'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                  }
+                );
               }
             }
-          } catch (storyError) {
-            console.warn('Error saving user stories:', storyError);
+          } catch (deleteError) {
+            console.warn('Error deleting user stories:', deleteError);
           }
         }
 
@@ -530,33 +544,27 @@ const ProductBacklog: React.FC = () => {
           userStories: tempUserStories
         };
 
-        const updatedEpics = [...epics, epicToSave];
-
         // Check if token exists
         const token = localStorage.getItem('token');
         if (!token) {
           throw new Error('No authentication token found. Please log in again.');
         }
 
-        // Save epic to backend
-        const response = await fetch(`${API_BASE_URL}/v3/products/${product?.productId}/backlog`, {
+        // Save epic to backend using POST (create single epic)
+        const response = await fetch(`${API_BASE_URL}/v3/products/${product?.productId}/backlog/epic`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
           },
-          body: JSON.stringify({
-            epics: JSON.stringify(updatedEpics)
-          })
+          body: JSON.stringify(epicToSave)
         });
 
         if (response.ok) {
-          const savedData = await response.json();
-          setProductBacklog(savedData);
-          setEpics(updatedEpics); // Update local state
-
-          // User stories are already saved by the backend /backlog endpoint
-          // No need to make separate API calls for user stories
+          const savedEpic = await response.json();
+          // Add the saved epic to the local epics array
+          const updatedEpics = [...epics, { ...epicToSave, ...savedEpic }];
+          setEpics(updatedEpics);
 
           setSuccessMessage('Epic added successfully!');
 

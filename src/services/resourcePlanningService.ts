@@ -11,21 +11,23 @@ import {
 } from '../types/resourcePlanning.types';
 
 const BASE_PATH = (productId: number) => `/v3/products/${productId}/resource-planning`;
+const CAPACITY_PATH = (productId: number, year: number, quarter: number) =>
+  `/products/${productId}/capacity-planning/${year}/${quarter}`;
 
 export const resourcePlanningService = {
-  // Teams
-  createTeam: async (productId: number, teamData: TeamRequest): Promise<Team> => {
-    const response = await api.post(`${BASE_PATH(productId)}/teams`, teamData);
+  // Teams (now quarterly-scoped under capacity planning)
+  createTeam: async (productId: number, year: number, quarter: number, teamData: TeamRequest): Promise<Team> => {
+    const response = await api.post(`${CAPACITY_PATH(productId, year, quarter)}/teams`, teamData);
     return response.data;
   },
 
-  getTeams: async (productId: number): Promise<Team[]> => {
-    const response = await api.get(`${BASE_PATH(productId)}/teams`);
+  getTeams: async (productId: number, year: number, quarter: number): Promise<Team[]> => {
+    const response = await api.get(`${CAPACITY_PATH(productId, year, quarter)}/teams`);
     return response.data;
   },
 
-  deleteTeam: async (productId: number, teamId: number): Promise<void> => {
-    await api.delete(`${BASE_PATH(productId)}/teams/${teamId}`);
+  deleteTeam: async (productId: number, year: number, quarter: number, teamId: number): Promise<void> => {
+    await api.delete(`${CAPACITY_PATH(productId, year, quarter)}/teams/${teamId}`);
   },
 
   // Members

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useProduct } from '../../hooks/useProduct';
 import { resourcePlanningService } from '../../services/resourcePlanningService';
+import { getCurrentQuarter } from '../../utils/quarterUtils';
 import {
   ResourcePlanningState,
   Team,
@@ -36,20 +37,7 @@ const ResourcePlanningPage: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState<'settings' | 'planning' | 'overview'>('settings');
 
-  // Force refresh page every time when navigating to Resource Planning
-  useEffect(() => {
-    const reloadKey = 'rp_reload_timestamp';
-    const lastReload = sessionStorage.getItem(reloadKey);
-    const now = Date.now();
-
-    // Only reload if last reload was more than 1 second ago (prevents infinite loop)
-    if (!lastReload || (now - parseInt(lastReload)) > 1000) {
-      sessionStorage.setItem(reloadKey, now.toString());
-      window.location.reload();
-    }
-  }, []);
-
-  // Force unlock body scroll on mount AND unmount (in case previous page left it locked)
+  // Unlock body scroll on mount AND unmount (in case previous page left it locked)
   useEffect(() => {
     // Force unlock immediately on mount
     document.body.style.overflow = '';
@@ -74,8 +62,9 @@ const ResourcePlanningPage: React.FC = () => {
     setState(prev => ({ ...prev, loading: true, error: null }));
 
     try {
+      const { year, quarter } = getCurrentQuarter();
       const [teams, epics, allMembers] = await Promise.all([
-        resourcePlanningService.getTeams(product.productId),
+        resourcePlanningService.getTeams(product.productId, year, quarter),
         resourcePlanningService.getPublishedEpics(product.productId),
         resourcePlanningService.getAllMembers(product.productId),
       ]);

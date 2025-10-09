@@ -3,6 +3,18 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useProduct } from '../hooks/useProduct';
 import { API_BASE_URL } from '../config';
 import './RoadmapPlanner.css';
+import './ProductBacklog.css';
+
+interface UserStory {
+  id?: number;
+  title: string;
+  description: string;
+  acceptanceCriteria?: string;
+  priority: 'High' | 'Medium' | 'Low';
+  storyPoints?: number;
+  status?: 'Draft' | 'Ready' | 'In Progress' | 'Done' | 'Blocked';
+  displayOrder?: number;
+}
 
 interface RoadmapItem {
   epicId: string;
@@ -20,6 +32,12 @@ interface RoadmapItem {
   startDate?: string;
   endDate?: string;
   published?: boolean; // Track published status
+  initiativeId?: string;
+  initiativeName?: string;
+  themeId?: string;
+  themeName?: string;
+  themeColor?: string;
+  track?: string;
 }
 
 interface RoadmapPlannerData {
@@ -40,6 +58,7 @@ interface Epic {
   initiativeId: string;
   initiativeName: string;
   track: string;
+  userStories?: UserStory[];
 }
 
 // Helper functions for quarter date calculations
@@ -84,6 +103,27 @@ const RoadmapPlanner: React.FC = () => {
   const [selectedTrackFilter, setSelectedTrackFilter] = useState('');
   const [assignedEpicIds, setAssignedEpicIds] = useState<Set<string>>(new Set());
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [viewingEpic, setViewingEpic] = useState<Epic | null>(null);
+  const [showViewEpicModal, setShowViewEpicModal] = useState(false);
+  const [isEditingEpic, setIsEditingEpic] = useState(false);
+  const [editingEpic, setEditingEpic] = useState<Epic | null>(null);
+  const [savingEpic, setSavingEpic] = useState(false);
+
+  // User Story state
+  const [editModeUserStories, setEditModeUserStories] = useState<UserStory[]>([]);
+  const [editModeNewUserStory, setEditModeNewUserStory] = useState<UserStory>({
+    title: '',
+    description: '',
+    acceptanceCriteria: '',
+    priority: 'Medium' as const,
+    storyPoints: undefined,
+    status: 'Draft' as const,
+    displayOrder: 0
+  });
+  const [showEditStoryForm, setShowEditStoryForm] = useState(false);
+  const [editModeStoryIndex, setEditModeStoryIndex] = useState<number | null>(null);
+  const editModeStoryEditorRef = useRef<HTMLDivElement>(null);
+  const [editModeExpandedStories, setEditModeExpandedStories] = useState<Set<number>>(new Set());
 
   const loadRoadmapData = async () => {
     
@@ -146,9 +186,10 @@ const RoadmapPlanner: React.FC = () => {
     if (!product) {
       return;
     }
-    
+
     try {
-      const response = await fetch(`${API_BASE_URL}/v3/products/${product.productId}/backlog`, {
+      // Get all epics regardless of status for Roadmap Planner Add/Remove modal
+      const response = await fetch(`${API_BASE_URL}/v3/products/${product.productId}/backlog?backlogOnly=false`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -156,7 +197,7 @@ const RoadmapPlanner: React.FC = () => {
 
       if (response.ok) {
         const backlogData = await response.json();
-        
+
         if (backlogData && backlogData.epics) {
           const epicsArray = JSON.parse(backlogData.epics);
           setAvailableEpics(epicsArray);
@@ -293,7 +334,11 @@ const RoadmapPlanner: React.FC = () => {
       if (response.ok) {
         setInlineError(''); // Clear any error messages on successful save
         setHasUnsavedChanges(false); // Clear unsaved changes flag
-        await loadRoadmapData();
+        await Promise.all([
+          loadRoadmapData(),
+          loadAvailableEpics(), // Refresh backlog list after save
+          loadAssignedEpicIds() // Refresh assigned epic IDs after save
+        ]);
         if (isEditMode) {
           setIsEditMode(false);
         }
@@ -678,6 +723,302 @@ const RoadmapPlanner: React.FC = () => {
     setSelectedTrackFilter('');
   }, []);
 
+  const openViewEpicModal = async (epicId: string) => {
+    // First try to find in availableEpics
+    let epic = availableEpics.find(e => e.id === epicId);
+
+    // If not found, build from roadmap item
+    if (!epic) {
+      const roadmapItem = roadmapData?.roadmapItems.find(item => item.epicId === epicId);
+      if (roadmapItem) {
+        epic = {
+          id: roadmapItem.epicId,
+          name: roadmapItem.epicName,
+          description: roadmapItem.epicDescription || '',
+          themeId: roadmapItem.themeId || '',
+          themeName: roadmapItem.themeName || '',
+          themeColor: roadmapItem.themeColor || '',
+          initiativeId: roadmapItem.initiativeId || '',
+          initiativeName: roadmapItem.initiativeName || '',
+          track: roadmapItem.track || '',
+          userStories: []
+        };
+      }
+    }
+
+    if (epic) {
+      // ALWAYS fetch user stories from backend for this epic
+      try {
+        const response = await fetch(
+          `${API_BASE_URL}/v3/products/${product?.productId}/epics/${epicId}/user-stories`,
+          {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+          }
+        );
+
+        if (response.ok) {
+          const stories = await response.json();
+          epic = { ...epic, userStories: stories };
+        } else {
+          epic = { ...epic, userStories: [] };
+        }
+      } catch (error) {
+        console.warn('Failed to load user stories:', error);
+        epic = { ...epic, userStories: [] };
+      }
+
+      setViewingEpic(epic);
+      setShowViewEpicModal(true);
+      setIsEditingEpic(false);
+      setEditingEpic(null);
+    }
+  };
+
+  const closeViewEpicModal = () => {
+    setShowViewEpicModal(false);
+    setViewingEpic(null);
+    setIsEditingEpic(false);
+    setEditingEpic(null);
+  };
+
+  const startEditingEpic = () => {
+    if (viewingEpic) {
+      setEditingEpic({ ...viewingEpic });
+      setIsEditingEpic(true);
+      // Initialize user stories for edit mode
+      setEditModeUserStories(viewingEpic.userStories ? [...viewingEpic.userStories] : []);
+    }
+  };
+
+  const cancelEditingEpic = () => {
+    setIsEditingEpic(false);
+    setEditingEpic(null);
+    setEditModeUserStories([]);
+    setShowEditStoryForm(false);
+    setEditModeStoryIndex(null);
+  };
+
+  const updateEditingEpic = (field: keyof Epic, value: string) => {
+    if (!editingEpic) return;
+    setEditingEpic(prev => {
+      if (!prev) return prev;
+      return { ...prev, [field]: value };
+    });
+  };
+
+  // User Story Management Functions
+  const addEditModeUserStory = useCallback(() => {
+    if (editModeNewUserStory.title.trim()) {
+      const storyToAdd: UserStory = {
+        ...editModeNewUserStory,
+        id: Date.now(),
+        displayOrder: editModeUserStories.length
+      };
+
+      setEditModeUserStories([...editModeUserStories, storyToAdd]);
+
+      // Reset form
+      setEditModeNewUserStory({
+        title: '',
+        description: '',
+        acceptanceCriteria: '',
+        priority: 'Medium' as const,
+        storyPoints: undefined,
+        status: 'Draft' as const,
+        displayOrder: 0
+      });
+
+      setShowEditStoryForm(false);
+      setEditModeStoryIndex(null);
+
+      if (editModeStoryEditorRef.current) {
+        editModeStoryEditorRef.current.innerHTML = '';
+      }
+    }
+  }, [editModeNewUserStory, editModeUserStories]);
+
+  const updateEditModeUserStoryField = useCallback((field: keyof UserStory, value: any) => {
+    setEditModeNewUserStory(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  }, []);
+
+  const editEditModeUserStory = useCallback((index: number) => {
+    const story = editModeUserStories[index];
+    setEditModeNewUserStory(story);
+    setEditModeStoryIndex(index);
+    setShowEditStoryForm(true);
+
+    if (editModeStoryEditorRef.current && story.description) {
+      editModeStoryEditorRef.current.innerHTML = story.description;
+    }
+  }, [editModeUserStories]);
+
+  const updateEditModeEditingUserStory = useCallback(() => {
+    if (editModeStoryIndex !== null && editModeNewUserStory.title.trim()) {
+      const updatedStories = [...editModeUserStories];
+      updatedStories[editModeStoryIndex] = {
+        ...editModeNewUserStory,
+        id: editModeUserStories[editModeStoryIndex].id
+      };
+      setEditModeUserStories(updatedStories);
+
+      setEditModeNewUserStory({
+        title: '',
+        description: '',
+        acceptanceCriteria: '',
+        priority: 'Medium' as const,
+        storyPoints: undefined,
+        status: 'Draft' as const,
+        displayOrder: 0
+      });
+
+      setEditModeStoryIndex(null);
+      setShowEditStoryForm(false);
+
+      if (editModeStoryEditorRef.current) {
+        editModeStoryEditorRef.current.innerHTML = '';
+      }
+    }
+  }, [editModeStoryIndex, editModeNewUserStory, editModeUserStories]);
+
+  const removeEditModeUserStory = useCallback((index: number) => {
+    setEditModeUserStories(prev => prev.filter((_, i) => i !== index));
+  }, []);
+
+  const handleEditModeStoryRichTextChange = (e: React.FormEvent<HTMLDivElement>) => {
+    const content = e.currentTarget.innerHTML;
+    updateEditModeUserStoryField('description', content);
+  };
+
+  const toggleEditModeStoryExpansion = useCallback((index: number) => {
+    setEditModeExpandedStories(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(index)) {
+        newSet.delete(index);
+      } else {
+        newSet.add(index);
+      }
+      return newSet;
+    });
+  }, []);
+
+  const execCommand = (command: string, value?: string) => {
+    document.execCommand(command, false, value);
+  };
+
+  const saveEditedEpic = async () => {
+    if (!editingEpic || !editingEpic.name.trim()) {
+      return;
+    }
+
+    try {
+      setSavingEpic(true);
+
+      // Update epic with user stories
+      const epicToSave = {
+        ...editingEpic,
+        userStories: editModeUserStories
+      };
+
+      // Handle user story deletions
+      // Find stories that were removed (exist in original but not in current)
+      const originalStories = viewingEpic?.userStories || [];
+      const currentStoryIds = new Set(editModeUserStories.map(s => s.id).filter(id => id));
+      const deletedStories = originalStories.filter(story => story.id && !currentStoryIds.has(story.id));
+
+      // Delete removed stories
+      if (deletedStories.length > 0) {
+        try {
+          for (const story of deletedStories) {
+            if (story.id) {
+              await fetch(
+                `${API_BASE_URL}/v3/products/${product?.productId}/user-stories/${story.id}`,
+                {
+                  method: 'DELETE',
+                  headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                  }
+                }
+              );
+            }
+          }
+        } catch (deleteError) {
+          console.warn('Error deleting user stories:', deleteError);
+        }
+      }
+
+      // Update epic using PUT endpoint (safe for single epic updates)
+      const response = await fetch(`${API_BASE_URL}/v3/products/${product?.productId}/backlog/${epicToSave.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify(epicToSave)
+      });
+
+      if (response.ok) {
+        const savedEpic = await response.json();
+
+        // Update in availableEpics if it exists there
+        const epicInBacklog = availableEpics.find(e => e.id === editingEpic.id);
+        if (epicInBacklog) {
+          const updatedEpics = availableEpics.map(epic =>
+            epic.id === savedEpic.id ? { ...epicToSave, ...savedEpic } : epic
+          );
+          setAvailableEpics(updatedEpics);
+        }
+      } else {
+        throw new Error('Failed to update epic');
+      }
+
+      // Update roadmap item name
+      if (roadmapData) {
+        const updatedRoadmapItems = roadmapData.roadmapItems.map(item =>
+          item.epicId === editingEpic.id
+            ? { ...item, epicName: editingEpic.name, epicDescription: editingEpic.description }
+            : item
+        );
+
+        // Save updated roadmap
+        const response = await fetch(`${API_BASE_URL}/v2/products/${product?.productId}/roadmap`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify({
+            year: selectedYear,
+            quarter: selectedQuarter,
+            roadmapItems: updatedRoadmapItems.map(item => {
+              const { published, ...itemWithoutPublished } = item;
+              return itemWithoutPublished;
+            })
+          })
+        });
+
+        if (response.ok) {
+          setRoadmapData({ ...roadmapData, roadmapItems: updatedRoadmapItems });
+          setViewingEpic(epicToSave);
+          setIsEditingEpic(false);
+          setEditingEpic(null);
+          setEditModeUserStories([]);
+          setShowEditStoryForm(false);
+        } else {
+          throw new Error('Failed to update roadmap');
+        }
+      }
+    } catch (error) {
+      setError('Failed to update epic');
+    } finally {
+      setSavingEpic(false);
+    }
+  };
+
   const StarRating: React.FC<{
     value: number;
     onChange?: (value: number) => void;
@@ -957,17 +1298,23 @@ const RoadmapPlanner: React.FC = () => {
                     <tr key={item.epicId} className="roadmap-row">
                       <td className="col-epic">
                         <div className="epic-cell">
-                          <h4 className="epic-title">{item.epicName}</h4>
+                          <button
+                            className="epic-name-btn"
+                            onClick={() => openViewEpicModal(item.epicId)}
+                            title="View epic details"
+                          >
+                            {item.epicName}
+                          </button>
                         </div>
                       </td>
                       <td className="col-initiative">
-                        <span className="initiative-display">{epic?.initiativeName || '-'}</span>
+                        <span className="initiative-display">{item.initiativeName || '-'}</span>
                       </td>
                       <td className="col-theme">
-                        <span className="theme-display">{epic?.themeName || '-'}</span>
+                        <span className="theme-display">{item.themeName || '-'}</span>
                       </td>
                       <td className="col-track">
-                        <span className="track-display">{epic?.track || '-'}</span>
+                        <span className="track-display">{item.track || '-'}</span>
                       </td>
                       <td className="col-reach">
                         <StarRating
@@ -1243,6 +1590,352 @@ const RoadmapPlanner: React.FC = () => {
 
       {/* Publish Confirmation Modal */}
       {showPublishModal && <PublishConfirmationModal />}
+
+      {/* View/Edit Epic Modal */}
+      {showViewEpicModal && viewingEpic && (
+        <div className="product-backlog-modal-overlay" onClick={closeViewEpicModal}>
+          <div className="product-backlog-modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="product-backlog-modal-header">
+              <h2>{isEditingEpic ? 'Edit Epic' : 'Epic Details'}</h2>
+              <button className="product-backlog-modal-close-btn" onClick={closeViewEpicModal}>
+                <span className="material-icons">close</span>
+              </button>
+            </div>
+
+            <div className="product-backlog-modal-body">
+              <div className="epic-form">
+                <div className="form-row-three">
+                  <div className="form-group">
+                    <label>Theme</label>
+                    <div className="view-field">{viewingEpic.themeName || '-'}</div>
+                  </div>
+                  <div className="form-group">
+                    <label>Initiative</label>
+                    <div className="view-field">{viewingEpic.initiativeName || '-'}</div>
+                  </div>
+                  <div className="form-group">
+                    <label>Track</label>
+                    <div className="view-field">{viewingEpic.track || '-'}</div>
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label>Epic Name{isEditingEpic && ' *'}</label>
+                  {isEditingEpic && editingEpic ? (
+                    <input
+                      type="text"
+                      value={editingEpic.name}
+                      onChange={(e) => updateEditingEpic('name', e.target.value)}
+                      className="epic-name-input"
+                      placeholder="Enter epic name"
+                    />
+                  ) : (
+                    <div className="view-field epic-name-view">
+                      {viewingEpic.name}
+                    </div>
+                  )}
+                </div>
+
+                <div className="form-group">
+                  <label>Description</label>
+                  <div className="view-field epic-description-view">
+                    {viewingEpic.description ? (
+                      <div dangerouslySetInnerHTML={{ __html: viewingEpic.description }} />
+                    ) : (
+                      'No description provided'
+                    )}
+                  </div>
+                </div>
+
+                {/* User Stories Section */}
+                {isEditingEpic ? (
+                  <div className="form-group">
+                    <label>
+                      User Stories (Optional)
+                      {editModeUserStories.length > 0 && (
+                        <span className="story-count-badge">{editModeUserStories.length}</span>
+                      )}
+                    </label>
+                    {!showEditStoryForm && (
+                      <button
+                        type="button"
+                        onClick={() => setShowEditStoryForm(true)}
+                        className="add-story-btn"
+                      >
+                        <span className="material-icons">add</span>
+                        Add User Story
+                      </button>
+                    )}
+
+                    {showEditStoryForm && (
+                      <div className="user-story-form">
+                        <div className="story-form-row">
+                          <input
+                            type="text"
+                            value={editModeNewUserStory.title}
+                            onChange={(e) => updateEditModeUserStoryField('title', e.target.value)}
+                            placeholder="User story title *"
+                            className="story-title-input"
+                          />
+                          <select
+                            value={editModeNewUserStory.priority}
+                            onChange={(e) => updateEditModeUserStoryField('priority', e.target.value)}
+                            className="story-priority-select"
+                          >
+                            <option value="High">High</option>
+                            <option value="Medium">Medium</option>
+                            <option value="Low">Low</option>
+                          </select>
+                          <input
+                            type="number"
+                            value={editModeNewUserStory.storyPoints || ''}
+                            onChange={(e) => updateEditModeUserStoryField('storyPoints', e.target.value ? parseInt(e.target.value) : undefined)}
+                            placeholder="Points"
+                            className="story-points-input"
+                            min="1"
+                            max="100"
+                          />
+                        </div>
+
+                        <div className="story-form-group">
+                          <label>Description</label>
+                          <div className="rich-text-editor story-editor">
+                            <div className="rich-text-toolbar">
+                              <button
+                                type="button"
+                                onClick={() => execCommand('bold')}
+                                className="toolbar-btn"
+                                title="Bold"
+                              >
+                                <strong>B</strong>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => execCommand('italic')}
+                                className="toolbar-btn"
+                                title="Italic"
+                              >
+                                <em>I</em>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => execCommand('underline')}
+                                className="toolbar-btn"
+                                title="Underline"
+                              >
+                                <u>U</u>
+                              </button>
+                              <div className="toolbar-separator"></div>
+                              <button
+                                type="button"
+                                onClick={() => execCommand('insertUnorderedList')}
+                                className="toolbar-btn"
+                                title="Bullet List"
+                              >
+                                <span className="material-icons">format_list_bulleted</span>
+                              </button>
+                            </div>
+                            <div
+                              ref={editModeStoryEditorRef}
+                              contentEditable
+                              className="story-description-editor"
+                              onInput={handleEditModeStoryRichTextChange}
+                              data-placeholder="Story description (optional)"
+                              suppressContentEditableWarning={true}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="story-form-group">
+                          <label>Acceptance Criteria</label>
+                          <textarea
+                            value={editModeNewUserStory.acceptanceCriteria}
+                            onChange={(e) => updateEditModeUserStoryField('acceptanceCriteria', e.target.value)}
+                            placeholder="Define the acceptance criteria for this story..."
+                            className="story-acceptance-input"
+                            rows={3}
+                          />
+                        </div>
+
+                        <div className="story-form-actions">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowEditStoryForm(false);
+                              setEditModeStoryIndex(null);
+                              setEditModeNewUserStory({
+                                title: '',
+                                description: '',
+                                acceptanceCriteria: '',
+                                priority: 'Medium' as const,
+                                storyPoints: undefined,
+                                status: 'Draft' as const,
+                                displayOrder: 0
+                              });
+                              if (editModeStoryEditorRef.current) {
+                                editModeStoryEditorRef.current.innerHTML = '';
+                              }
+                            }}
+                            className="story-cancel-btn"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="button"
+                            onClick={editModeStoryIndex !== null ? updateEditModeEditingUserStory : addEditModeUserStory}
+                            className="story-save-btn"
+                          >
+                            {editModeStoryIndex !== null ? 'Update' : 'Add'} Story
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {editModeUserStories.length > 0 && (
+                      <div className="user-stories-list">
+                        {editModeUserStories.map((story, index) => (
+                          <div key={story.id} className="user-story-item">
+                            <div className="story-item-header">
+                              <div className="story-item-left">
+                                <button
+                                  type="button"
+                                  onClick={() => toggleEditModeStoryExpansion(index)}
+                                  className="story-expand-btn"
+                                >
+                                  <span className="material-icons">
+                                    {editModeExpandedStories.has(index) ? 'expand_less' : 'expand_more'}
+                                  </span>
+                                </button>
+                                <span className="story-title">{story.title}</span>
+                                {story.priority && (
+                                  <span className={`story-priority-badge priority-${story.priority.toLowerCase()}`}>
+                                    {story.priority}
+                                  </span>
+                                )}
+                                {story.storyPoints && (
+                                  <span className="story-points-badge">
+                                    {story.storyPoints} pts
+                                  </span>
+                                )}
+                              </div>
+                              <div className="story-item-actions">
+                                <button
+                                  type="button"
+                                  onClick={() => editEditModeUserStory(index)}
+                                  className="story-edit-btn"
+                                  title="Edit story"
+                                >
+                                  <span className="material-icons">edit</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => removeEditModeUserStory(index)}
+                                  className="story-delete-btn"
+                                  title="Delete story"
+                                >
+                                  <span className="material-icons">delete</span>
+                                </button>
+                              </div>
+                            </div>
+                            {editModeExpandedStories.has(index) && (
+                              <div className="story-item-details">
+                                {story.description && (
+                                  <div className="story-detail-section">
+                                    <strong>Description:</strong>
+                                    <div dangerouslySetInnerHTML={{ __html: story.description }} />
+                                  </div>
+                                )}
+                                {story.acceptanceCriteria && (
+                                  <div className="story-detail-section">
+                                    <strong>Acceptance Criteria:</strong>
+                                    <p>{story.acceptanceCriteria}</p>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  viewingEpic.userStories && viewingEpic.userStories.length > 0 && (
+                    <div className="form-group">
+                      <label>User Stories ({viewingEpic.userStories.length})</label>
+                      <div className="user-stories-list">
+                        {viewingEpic.userStories.map((story, index) => (
+                          <div key={story.id} className="user-story-item view-only">
+                            <div className="story-item-header">
+                              <div className="story-item-left">
+                                <span className="story-title">{story.title}</span>
+                                {story.priority && (
+                                  <span className={`story-priority-badge priority-${story.priority.toLowerCase()}`}>
+                                    {story.priority}
+                                  </span>
+                                )}
+                                {story.storyPoints && (
+                                  <span className="story-points-badge">
+                                    {story.storyPoints} pts
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            {story.description && (
+                              <div className="story-item-details">
+                                <div className="story-detail-section">
+                                  <div dangerouslySetInnerHTML={{ __html: story.description }} />
+                                </div>
+                              </div>
+                            )}
+                            {story.acceptanceCriteria && (
+                              <div className="story-item-details">
+                                <div className="story-detail-section">
+                                  <strong>Acceptance Criteria:</strong>
+                                  <p>{story.acceptanceCriteria}</p>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                )}
+              </div>
+            </div>
+
+            <div className="product-backlog-modal-footer">
+              {isEditingEpic ? (
+                <div style={{ display: 'flex', gap: '12px' }}>
+                  <button onClick={cancelEditingEpic} className="btn-cancel" disabled={savingEpic}>
+                    <span className="material-icons">close</span>
+                    Cancel
+                  </button>
+                  <button
+                    onClick={saveEditedEpic}
+                    className="modal-btn-primary"
+                    disabled={savingEpic || !editingEpic?.name.trim()}
+                  >
+                    <span className="material-icons">{savingEpic ? 'hourglass_empty' : 'save'}</span>
+                    {savingEpic ? 'Saving...' : 'Save Changes'}
+                  </button>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', gap: '12px' }}>
+                  <button onClick={closeViewEpicModal} className="btn-close">
+                    <span className="material-icons">check</span>
+                    Close
+                  </button>
+                  <button onClick={startEditingEpic} className="modal-btn-primary">
+                    <span className="material-icons">edit</span>
+                    Edit
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

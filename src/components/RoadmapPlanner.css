@@ -602,6 +602,24 @@
   line-height: 1.3;
 }
 
+.epic-name-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--primary-teal);
+  cursor: pointer;
+  text-align: left;
+  transition: color 0.2s ease;
+  line-height: 1.3;
+}
+
+.epic-name-btn:hover {
+  color: var(--black);
+  text-decoration: underline;
+}
+
 .epic-desc {
   font-size: 13px;
   color: var(--gray-medium);
@@ -1714,3 +1732,4 @@
     width: 100%;
   }
 }
+

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ResourcePlanningState, Team, TeamMember, TeamRequest, TeamMemberRequest } from '../../../../types/resourcePlanning.types';
 import { resourcePlanningService } from '../../../../services/resourcePlanningService';
+import { getCurrentQuarter } from '../../../../utils/quarterUtils';
 
 interface TeamManagementProps {
   productId: number;
@@ -19,9 +20,7 @@ const TeamManagement: React.FC<TeamManagementProps> = ({
   const [showAddMember, setShowAddMember] = useState<number | null>(null);
   const [teamFormData, setTeamFormData] = useState<TeamRequest>({ name: '', description: '' });
   const [memberFormData, setMemberFormData] = useState<TeamMemberRequest>({
-    memberName: '',
-    role: '',
-    email: ''
+    memberName: ''
   });
 
   // Lock/unlock body scroll when modals are open
@@ -48,7 +47,8 @@ const TeamManagement: React.FC<TeamManagementProps> = ({
   const handleCreateTeam = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await resourcePlanningService.createTeam(productId, teamFormData);
+      const { year, quarter } = getCurrentQuarter();
+      await resourcePlanningService.createTeam(productId, year, quarter, teamFormData);
       setTeamFormData({ name: '', description: '' });
       setShowCreateTeam(false);
       onRefresh();
@@ -61,7 +61,7 @@ const TeamManagement: React.FC<TeamManagementProps> = ({
     e.preventDefault();
     try {
       await resourcePlanningService.addMember(productId, teamId, memberFormData);
-      setMemberFormData({ memberName: '', role: '', email: '' });
+      setMemberFormData({ memberName: '' });
       setShowAddMember(null);
       onRefresh();
     } catch (error) {
@@ -72,7 +72,8 @@ const TeamManagement: React.FC<TeamManagementProps> = ({
   const handleDeleteTeam = async (teamId: number) => {
     if (window.confirm('Are you sure you want to delete this team?')) {
       try {
-        await resourcePlanningService.deleteTeam(productId, teamId);
+        const { year, quarter } = getCurrentQuarter();
+        await resourcePlanningService.deleteTeam(productId, year, quarter, teamId);
         onRefresh();
       } catch (error) {
         console.error('Failed to delete team:', error);
@@ -166,25 +167,9 @@ const TeamManagement: React.FC<TeamManagementProps> = ({
                         required
                       />
                     </div>
-                    <div className="form-group">
-                      <label>Role</label>
-                      <input
-                        type="text"
-                        value={memberFormData.role}
-                        onChange={(e) => setMemberFormData({ ...memberFormData, role: e.target.value })}
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label>Email</label>
-                      <input
-                        type="email"
-                        value={memberFormData.email}
-                        onChange={(e) => setMemberFormData({ ...memberFormData, email: e.target.value })}
-                      />
-                    </div>
                   </div>
                   <div className="form-actions">
-                    <button type="button" onClick={() => setShowAddMember(null)}>Cancel</button>
+                    <button type="button" className="btn btn-secondary" onClick={() => setShowAddMember(null)}>Cancel</button>
                     <button type="submit" className="btn btn-primary">Add Member</button>
                   </div>
                 </form>
@@ -201,8 +186,6 @@ const TeamManagement: React.FC<TeamManagementProps> = ({
                     <div key={member.id} className="member-card">
                       <div className="member-info">
                         <strong>{member.memberName}</strong>
-                        {member.role && <span className="member-role">{member.role}</span>}
-                        {member.email && <span className="member-email">{member.email}</span>}
                       </div>
                     </div>
                   ))}
