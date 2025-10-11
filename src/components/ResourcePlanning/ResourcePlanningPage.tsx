@@ -122,7 +122,7 @@ const ResourcePlanningPage: React.FC = () => {
         <div className="header-top-row">
           <div className="header-left">
             <button
-              onClick={() => navigate(-1)}
+              onClick={() => navigate(`/products/${productSlug}/modules`)}
               className="back-button"
               aria-label="Back"
             >

@@ -137,33 +137,31 @@ const ProductModules: React.FC = () => {
 
       <div className="modules-grid">
         {filteredModules.map((productModule) => (
-          <div 
-            key={productModule.id} 
+          <div
+            key={productModule.id}
             className={`module-card ${productModule.isEnabled ? 'enabled clickable' : 'disabled'}`}
             onClick={() => {
               if (productModule.isEnabled) {
-                console.log('Clicked module name:', `"${productModule.module.name}"`);
-                window.scrollTo(0, 0);
+                // Force complete page reload to avoid CSS issues
+                const timestamp = new Date().getTime();
                 if (productModule.module.name === 'Product Basics') {
-                  navigate(`/products/${productSlug}/modules/basics`);
+                  window.location.replace(`/products/${productSlug}/modules/basics?t=${timestamp}`);
                 } else if (productModule.module.name === 'Market & Competition Analysis') {
-                  navigate(`/products/${productSlug}/modules/market-competition`);
+                  window.location.replace(`/products/${productSlug}/modules/market-competition?t=${timestamp}`);
                 } else if (productModule.module.name === 'Product Hypothesis') {
-                  navigate(`/products/${productSlug}/modules/hypothesis`);
+                  window.location.replace(`/products/${productSlug}/modules/hypothesis?t=${timestamp}`);
                 } else if (productModule.module.name === 'Product Backlog') {
-                  navigate(`/products/${productSlug}/modules/backlog`);
+                  window.location.replace(`/products/${productSlug}/modules/backlog?t=${timestamp}`);
                 } else if (productModule.module.name === 'Roadmap Planner') {
-                  navigate(`/products/${productSlug}/modules/roadmap`);
+                  window.location.replace(`/products/${productSlug}/modules/roadmap?t=${timestamp}`);
                 } else if (productModule.module.name === 'Roadmap') {
-                  navigate(`/products/${productSlug}/modules/roadmap-visualization`);
+                  window.location.replace(`/products/${productSlug}/modules/roadmap-visualization?t=${timestamp}`);
                 } else if (productModule.module.name === 'Capacity Planning') {
-                  navigate(`/products/${productSlug}/modules/capacity-planning`);
+                  window.location.replace(`/products/${productSlug}/modules/capacity-planning?t=${timestamp}`);
                 } else if (productModule.module.name === 'Kanban Board') {
-                  navigate(`/products/${productSlug}/modules/kanban`);
+                  window.location.replace(`/products/${productSlug}/modules/kanban?t=${timestamp}`);
                 } else if (productModule.module.name === 'Resource Planning') {
-                  navigate(`/products/${productSlug}/modules/resource-planning`);
-                } else {
-                  console.log('No navigation match found for:', productModule.module.name);
+                  window.location.replace(`/products/${productSlug}/modules/resource-planning?t=${timestamp}`);
                 }
               }
             }}

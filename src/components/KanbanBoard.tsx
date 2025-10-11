@@ -250,7 +250,7 @@ const KanbanBoard: React.FC = () => {
       <div className="kanban-page-header">
         <div className="header-top-row">
           <div className="header-left">
-            <button className="back-button" onClick={() => navigate(-1)}>
+            <button className="back-button" onClick={() => navigate(`/products/${productSlug}/modules`)}>
               <span className="material-icons">arrow_back</span>
             </button>
             <h1 className="kanban-page-title">
