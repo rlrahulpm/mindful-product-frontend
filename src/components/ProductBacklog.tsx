@@ -342,29 +342,8 @@ const ProductBacklog: React.FC = () => {
   }, []);
 
   const openViewEpicModal = async (epic: Epic) => {
-    // Fetch user stories for this epic
-    let epicWithStories = { ...epic };
-
-    try {
-      const response = await fetch(
-        `${API_BASE_URL}/v3/products/${product?.productId}/epics/${epic.id}/user-stories`,
-        {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
-        }
-      );
-
-      if (response.ok) {
-        const stories = await response.json();
-        epicWithStories.userStories = stories;
-      }
-    } catch (error) {
-      console.warn('Failed to load user stories:', error);
-      epicWithStories.userStories = [];
-    }
-
-    setViewingEpic(epicWithStories);
+    // Epic already includes user stories from the backlog data
+    setViewingEpic({ ...epic, userStories: epic.userStories || [] });
     setShowViewEpicModal(true);
   };
 

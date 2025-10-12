@@ -14,6 +14,7 @@ interface ProductHypothesisData {
   themes: string;
   createdAt?: string;
   updatedAt?: string;
+  warnings?: string[];
 }
 
 interface Initiative {
@@ -237,10 +238,59 @@ const ProductHypothesis: React.FC = () => {
       if (response.ok) {
         const savedData = await response.json();
         setProductHypothesis(savedData);
-        setSuccessMessage('Product hypothesis saved successfully!');
+
+        // Parse and update the arrays from saved data
+        if (savedData.themes) {
+          try {
+            const parsedThemes = JSON.parse(savedData.themes);
+            if (Array.isArray(parsedThemes)) {
+              setThemes(parsedThemes);
+            }
+          } catch (e) {
+            console.error('Error parsing themes:', e);
+          }
+        }
+
+        if (savedData.initiatives) {
+          try {
+            const parsedInitiatives = JSON.parse(savedData.initiatives);
+            if (Array.isArray(parsedInitiatives)) {
+              setInitiatives(parsedInitiatives);
+            }
+          } catch (e) {
+            console.error('Error parsing initiatives:', e);
+          }
+        }
+
+        if (savedData.assumptions) {
+          try {
+            const parsedAssumptions = JSON.parse(savedData.assumptions);
+            if (Array.isArray(parsedAssumptions)) {
+              setAssumptions(parsedAssumptions);
+            }
+          } catch (e) {
+            console.error('Error parsing assumptions:', e);
+          }
+        }
+
+        // Check for warnings
+        console.log('Saved data warnings:', savedData.warnings);
+        if (savedData.warnings && savedData.warnings.length > 0) {
+          // Show warnings as error messages
+          console.log('Setting error with warnings:', savedData.warnings.join('\n'));
+          setError(savedData.warnings.join('\n'));
+          setSuccessMessage('');
+        } else {
+          setSuccessMessage('Product hypothesis saved successfully!');
+          setError('');
+        }
+
         setIsEditMode(false);
-        
-        setTimeout(() => setSuccessMessage(''), 3000);
+
+        setTimeout(() => {
+          setSuccessMessage('');
+          setError('');
+        }, 5000);
       } else {
         throw new Error('Failed to save product hypothesis data');
       }
@@ -315,8 +365,24 @@ const ProductHypothesis: React.FC = () => {
         </div>
       </div>
 
-      {error && <div className="alert alert-error">{error}</div>}
-      {successMessage && <div className="alert alert-success">{successMessage}</div>}
+      {error && (
+        <div className="toast-notification error">
+          <span className="material-icons">error</span>
+          <div className="toast-content">{error}</div>
+          <button className="toast-close" onClick={() => setError('')}>
+            <span className="material-icons">close</span>
+          </button>
+        </div>
+      )}
+      {successMessage && (
+        <div className="toast-notification success">
+          <span className="material-icons">check_circle</span>
+          <div className="toast-content">{successMessage}</div>
+          <button className="toast-close" onClick={() => setSuccessMessage('')}>
+            <span className="material-icons">close</span>
+          </button>
+        </div>
+      )}
 
       <div className="content-layout">
         <div className="form-grid">

@@ -124,6 +124,7 @@ const RoadmapPlanner: React.FC = () => {
   const [editModeStoryIndex, setEditModeStoryIndex] = useState<number | null>(null);
   const editModeStoryEditorRef = useRef<HTMLDivElement>(null);
   const [editModeExpandedStories, setEditModeExpandedStories] = useState<Set<number>>(new Set());
+  const [modifiedStoryIds, setModifiedStoryIds] = useState<Set<number>>(new Set()); // Track which stories have been modified
 
   const loadRoadmapData = async () => {
     
@@ -781,6 +782,7 @@ const RoadmapPlanner: React.FC = () => {
     setViewingEpic(null);
     setIsEditingEpic(false);
     setEditingEpic(null);
+    setModifiedStoryIds(new Set()); // Clear modified stories set when closing modal
   };
 
   const startEditingEpic = () => {
@@ -789,6 +791,7 @@ const RoadmapPlanner: React.FC = () => {
       setIsEditingEpic(true);
       // Initialize user stories for edit mode
       setEditModeUserStories(viewingEpic.userStories ? [...viewingEpic.userStories] : []);
+      setModifiedStoryIds(new Set()); // Clear modified stories set when starting edit
     }
   };
 
@@ -798,6 +801,7 @@ const RoadmapPlanner: React.FC = () => {
     setEditModeUserStories([]);
     setShowEditStoryForm(false);
     setEditModeStoryIndex(null);
+    setModifiedStoryIds(new Set()); // Clear modified stories set when canceling
   };
 
   const updateEditingEpic = (field: keyof Epic, value: string) => {
@@ -811,9 +815,10 @@ const RoadmapPlanner: React.FC = () => {
   // User Story Management Functions
   const addEditModeUserStory = useCallback(() => {
     if (editModeNewUserStory.title.trim()) {
+      // Add to local state only - will be saved when "Save Changes" is clicked
       const storyToAdd: UserStory = {
         ...editModeNewUserStory,
-        id: Date.now(),
+        // Use timestamp as temporary ID for new stories (no id means it needs to be created)
         displayOrder: editModeUserStories.length
       };
 
@@ -859,13 +864,21 @@ const RoadmapPlanner: React.FC = () => {
 
   const updateEditModeEditingUserStory = useCallback(() => {
     if (editModeStoryIndex !== null && editModeNewUserStory.title.trim()) {
+      // Update local state only - will be saved when "Save Changes" is clicked
       const updatedStories = [...editModeUserStories];
+      const storyId = editModeUserStories[editModeStoryIndex].id;
       updatedStories[editModeStoryIndex] = {
         ...editModeNewUserStory,
-        id: editModeUserStories[editModeStoryIndex].id
+        id: storyId
       };
       setEditModeUserStories(updatedStories);
 
+      // Mark story as modified if it has an ID (existing story)
+      if (storyId) {
+        setModifiedStoryIds(prev => new Set(prev).add(storyId));
+      }
+
+      // Reset form
       setEditModeNewUserStory({
         title: '',
         description: '',
@@ -930,15 +943,15 @@ const RoadmapPlanner: React.FC = () => {
       const currentStoryIds = new Set(editModeUserStories.map(s => s.id).filter(id => id));
       const deletedStories = originalStories.filter(story => story.id && !currentStoryIds.has(story.id));
 
-      // Delete removed stories
+      // Delete removed stories (soft delete using POST)
       if (deletedStories.length > 0) {
         try {
           for (const story of deletedStories) {
             if (story.id) {
               await fetch(
-                `${API_BASE_URL}/v3/products/${product?.productId}/user-stories/${story.id}`,
+                `${API_BASE_URL}/v3/products/${product?.productId}/user-stories/${story.id}/delete`,
                 {
-                  method: 'DELETE',
+                  method: 'POST',
                   headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                   }
@@ -951,14 +964,82 @@ const RoadmapPlanner: React.FC = () => {
         }
       }
 
+      // Create new user stories (those without id) and update modified existing ones
+      const createdStories: UserStory[] = [];
+      for (const story of editModeUserStories) {
+        try {
+          if (!story.id) {
+            // Create new story - no id means it needs to be created
+            console.log('Creating new user story:', story.title);
+            const response = await fetch(
+              `${API_BASE_URL}/v3/products/${product?.productId}/epics/${editingEpic.id}/user-stories`,
+              {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({
+                  title: story.title,
+                  description: story.description,
+                  acceptanceCriteria: story.acceptanceCriteria,
+                  priority: story.priority,
+                  storyPoints: story.storyPoints,
+                  status: story.status || 'Draft'
+                })
+              }
+            );
+
+            if (response.ok) {
+              const createdStory = await response.json();
+              createdStories.push(createdStory);
+              console.log('Successfully created user story:', createdStory);
+            } else {
+              console.error('Failed to create user story:', await response.text());
+            }
+          } else if (story.id && modifiedStoryIds.has(story.id)) {
+            // Only update existing story if it was actually modified
+            console.log('Updating modified user story:', story.id);
+            const response = await fetch(
+              `${API_BASE_URL}/v3/products/${product?.productId}/user-stories/${story.id}`,
+              {
+                method: 'PUT',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({
+                  title: story.title,
+                  description: story.description,
+                  acceptanceCriteria: story.acceptanceCriteria,
+                  priority: story.priority,
+                  storyPoints: story.storyPoints,
+                  status: story.status || 'Draft'
+                })
+              }
+            );
+
+            if (response.ok) {
+              console.log('Successfully updated user story:', story.id);
+            } else {
+              console.error('Failed to update user story:', await response.text());
+            }
+          }
+        } catch (storyError) {
+          console.warn('Error creating/updating user story:', storyError);
+        }
+      }
+
       // Update epic using PUT endpoint (safe for single epic updates)
+      // Don't send userStories - they are managed separately via user story endpoints
+      const { userStories, ...epicWithoutStories } = epicToSave;
       const response = await fetch(`${API_BASE_URL}/v3/products/${product?.productId}/backlog/${epicToSave.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
-        body: JSON.stringify(epicToSave)
+        body: JSON.stringify(epicWithoutStories)
       });
 
       if (response.ok) {
@@ -1008,6 +1089,7 @@ const RoadmapPlanner: React.FC = () => {
           setEditingEpic(null);
           setEditModeUserStories([]);
           setShowEditStoryForm(false);
+          setModifiedStoryIds(new Set()); // Clear modified stories set
         } else {
           throw new Error('Failed to update roadmap');
         }
@@ -1638,13 +1720,23 @@ const RoadmapPlanner: React.FC = () => {
 
                 <div className="form-group">
                   <label>Description</label>
-                  <div className="view-field epic-description-view">
-                    {viewingEpic.description ? (
-                      <div dangerouslySetInnerHTML={{ __html: viewingEpic.description }} />
-                    ) : (
-                      'No description provided'
-                    )}
-                  </div>
+                  {isEditingEpic && editingEpic ? (
+                    <textarea
+                      value={editingEpic.description}
+                      onChange={(e) => updateEditingEpic('description', e.target.value)}
+                      className="epic-description-input"
+                      placeholder="Enter epic description"
+                      rows={4}
+                    />
+                  ) : (
+                    <div className="view-field epic-description-view">
+                      {viewingEpic.description ? (
+                        <div dangerouslySetInnerHTML={{ __html: viewingEpic.description }} />
+                      ) : (
+                        'No description provided'
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* User Stories Section */}

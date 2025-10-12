@@ -19,11 +19,32 @@ interface KanbanItem {
   updatedAt?: string;
 }
 
+interface EpicKanbanItem {
+  id: number;
+  epicName: string;
+  description?: string;
+  status: string;
+  position: number;
+  priority?: string;
+  targetQuarter?: string;
+  startDate?: string;
+  endDate?: string;
+  totalStoryPoints?: number;
+  completedStoryPoints?: number;
+  userStoriesCount?: number;
+}
+
 const KanbanBoard: React.FC = () => {
   const navigate = useNavigate();
   const { productSlug } = useParams<{ productSlug: string }>();
   const { product, loading: productLoading, error: productError } = useProduct(productSlug);
   const [kanbanItems, setKanbanItems] = useState<{ [key: string]: KanbanItem[] }>({
+    COMMITTED: [],
+    TODO: [],
+    IN_PROGRESS: [],
+    DONE: []
+  });
+  const [epicKanbanItems, setEpicKanbanItems] = useState<{ [key: string]: EpicKanbanItem[] }>({
     COMMITTED: [],
     TODO: [],
     IN_PROGRESS: [],
@@ -35,8 +56,9 @@ const KanbanBoard: React.FC = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingItem, setEditingItem] = useState<KanbanItem | null>(null);
   const [draggedItem, setDraggedItem] = useState<KanbanItem | null>(null);
+  const [draggedEpic, setDraggedEpic] = useState<EpicKanbanItem | null>(null);
   const [draggedOverColumn, setDraggedOverColumn] = useState<string | null>(null);
-  
+  const [viewMode, setViewMode] = useState<'epic' | 'userstory'>('epic');
 
   const columns = [
     { id: 'COMMITTED', title: 'Committed', color: '#64748b' },
@@ -50,29 +72,42 @@ const KanbanBoard: React.FC = () => {
     if (!product?.productId) return;
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:8080/api/v3/products/${product.productId}/kanban`, {
+      const endpoint = viewMode === 'epic'
+        ? `http://localhost:8080/api/v3/products/${product.productId}/kanban/epics`
+        : `http://localhost:8080/api/v3/products/${product.productId}/kanban`;
+
+      const response = await fetch(endpoint, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
       });
-      
+
       if (response.ok) {
         const data = await response.json();
-        setKanbanItems({
-          COMMITTED: data.COMMITTED || [],
-          TODO: data.TODO || [],
-          IN_PROGRESS: data.IN_PROGRESS || [],
-          DONE: data.DONE || []
-        });
+        if (viewMode === 'epic') {
+          setEpicKanbanItems({
+            COMMITTED: data.COMMITTED || [],
+            TODO: data.TODO || [],
+            IN_PROGRESS: data.IN_PROGRESS || [],
+            DONE: data.DONE || []
+          });
+        } else {
+          setKanbanItems({
+            COMMITTED: data.COMMITTED || [],
+            TODO: data.TODO || [],
+            IN_PROGRESS: data.IN_PROGRESS || [],
+            DONE: data.DONE || []
+          });
+        }
       } else {
-        setError('Failed to load kanban items');
+        setError(`Failed to load ${viewMode === 'epic' ? 'epic' : 'user story'} kanban items`);
       }
     } catch (err) {
-      setError('Failed to load kanban items');
+      setError(`Failed to load ${viewMode === 'epic' ? 'epic' : 'user story'} kanban items`);
     } finally {
       setLoading(false);
     }
-  }, [product]);
+  }, [product, viewMode]);
 
   useEffect(() => {
     if (!product?.productId) return;
@@ -159,11 +194,11 @@ const KanbanBoard: React.FC = () => {
 
   const handleDrop = async (e: React.DragEvent, targetColumn: string, targetPosition: number) => {
     e.preventDefault();
-    
+
     if (!draggedItem) return;
 
     const sourceColumn = draggedItem.status;
-    
+
     // If dropping in the same position, do nothing
     if (sourceColumn === targetColumn && draggedItem.position === targetPosition) {
       setDraggedItem(null);
@@ -174,27 +209,27 @@ const KanbanBoard: React.FC = () => {
     // Check if this is a roadmap item (negative ID) or involves special columns
     const isRoadmapItem = draggedItem.id < 0;
     const involvesSpecialColumn = sourceColumn === 'COMMITTED' || targetColumn === 'COMMITTED' || sourceColumn === 'TODO' || targetColumn === 'TODO';
-    
+
     // Only do optimistic updates for regular items not involving special columns
     if (!isRoadmapItem && !involvesSpecialColumn) {
       // Optimistically update UI for regular items
       const newKanbanItems = { ...kanbanItems };
-      
+
       // Remove from source column
       newKanbanItems[sourceColumn] = newKanbanItems[sourceColumn].filter(
         item => item.id !== draggedItem.id
       );
-      
+
       // Add to target column at position
       const updatedItem = { ...draggedItem, status: targetColumn, position: targetPosition };
       newKanbanItems[targetColumn].splice(targetPosition, 0, updatedItem);
-      
+
       // Update positions
       newKanbanItems[targetColumn] = newKanbanItems[targetColumn].map((item, index) => ({
         ...item,
         position: index
       }));
-      
+
       setKanbanItems(newKanbanItems);
     }
 
@@ -229,6 +264,74 @@ const KanbanBoard: React.FC = () => {
     setDraggedOverColumn(null);
   };
 
+  // Epic Drag and Drop handlers
+  const handleEpicDragStart = (e: React.DragEvent, epic: EpicKanbanItem) => {
+    setDraggedEpic(epic);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleEpicDrop = async (e: React.DragEvent, targetColumn: string, targetPosition: number) => {
+    e.preventDefault();
+
+    if (!draggedEpic) return;
+
+    const sourceColumn = draggedEpic.status;
+
+    // If dropping in the same position, do nothing
+    if (sourceColumn === targetColumn && draggedEpic.position === targetPosition) {
+      setDraggedEpic(null);
+      setDraggedOverColumn(null);
+      return;
+    }
+
+    // Optimistically update UI
+    const newEpicKanbanItems = { ...epicKanbanItems };
+
+    // Remove from source column
+    newEpicKanbanItems[sourceColumn] = newEpicKanbanItems[sourceColumn].filter(
+      epic => epic.id !== draggedEpic.id
+    );
+
+    // Add to target column at position
+    const updatedEpic = { ...draggedEpic, status: targetColumn, position: targetPosition };
+    newEpicKanbanItems[targetColumn].splice(targetPosition, 0, updatedEpic);
+
+    // Update positions
+    newEpicKanbanItems[targetColumn] = newEpicKanbanItems[targetColumn].map((epic, index) => ({
+      ...epic,
+      position: index
+    }));
+
+    setEpicKanbanItems(newEpicKanbanItems);
+
+    // Make API call to persist the change - epics use roadmap item ID
+    try {
+      const response = await fetch(`http://localhost:8080/api/v3/products/${product?.productId}/kanban/epics/${draggedEpic.id}/move`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          status: targetColumn,
+          position: targetPosition
+        })
+      });
+
+      if (!response.ok) {
+        // Revert on failure
+        loadKanbanItems();
+        setError('Failed to move epic');
+      }
+    } catch (err) {
+      loadKanbanItems();
+      setError('Failed to move epic');
+    }
+
+    setDraggedEpic(null);
+    setDraggedOverColumn(null);
+  };
+
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'HIGH': return '#ef4444';
@@ -258,6 +361,24 @@ const KanbanBoard: React.FC = () => {
               Kanban Board {product && `- ${product.productName}`}
             </h1>
           </div>
+          <div className="header-right">
+            <div className="view-mode-toggle">
+              <button
+                className={`toggle-btn ${viewMode === 'epic' ? 'active' : ''}`}
+                onClick={() => setViewMode('epic')}
+              >
+                <span className="material-icons">list_alt</span>
+                Epic Mode
+              </button>
+              <button
+                className={`toggle-btn ${viewMode === 'userstory' ? 'active' : ''}`}
+                onClick={() => setViewMode('userstory')}
+              >
+                <span className="material-icons">assignment</span>
+                User Story Mode
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -281,11 +402,101 @@ const KanbanBoard: React.FC = () => {
           <span className="material-icons">hourglass_empty</span>
           Loading kanban board...
         </div>
+      ) : viewMode === 'epic' ? (
+        <div className="kanban-board">
+          {columns.map(column => {
+            const items = epicKanbanItems[column.id] || [];
+            return (
+              <div
+                key={column.id}
+                className={`kanban-column ${draggedOverColumn === column.id ? 'drag-over' : ''}`}
+                onDragOver={(e) => handleDragOver(e, column.id)}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => handleEpicDrop(e, column.id, items.length)}
+              >
+                <div className="column-header" style={{ borderTopColor: column.color }}>
+                  <h3>{column.title}</h3>
+                  <span className="item-count">{items.length}</span>
+                </div>
+                <div className="column-content">
+                  {items.map((epic, index) => (
+                    <div
+                      key={epic.id}
+                      className={`kanban-item status-${epic.status?.toLowerCase().replace('_', '-')}`}
+                      draggable
+                      onDragStart={(e) => handleEpicDragStart(e, epic)}
+                      onDragOver={(e) => handleDragOver(e, column.id)}
+                      onDrop={(e) => handleEpicDrop(e, column.id, index)}
+                    >
+                      <div className="item-header">
+                        <h4>
+                          <span className="material-icons roadmap-indicator">list_alt</span>
+                          {epic.epicName}
+                        </h4>
+                      </div>
+                      {epic.description && (
+                        <div className="item-description">{epic.description}</div>
+                      )}
+                      {epic.totalStoryPoints && (
+                        <div className="item-meta">
+                          <div className="item-meta-left">
+                            <span className="item-points">
+                              <span className="material-icons">stars</span>
+                              {epic.completedStoryPoints || 0}/{epic.totalStoryPoints}
+                            </span>
+                            {epic.userStoriesCount && (
+                              <span className="item-points">
+                                <span className="material-icons">assignment</span>
+                                {epic.userStoriesCount} stories
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                      <div className="item-bottom-meta">
+                        <div className="item-bottom-left">
+                          {epic.priority && (
+                            <span
+                              className="item-priority"
+                              style={{ backgroundColor: getPriorityColor(epic.priority) }}
+                            >
+                              {epic.priority}
+                            </span>
+                          )}
+                          {epic.targetQuarter && (
+                            <span className="item-assignee">
+                              <span className="material-icons">calendar_today</span>
+                              {epic.targetQuarter}
+                            </span>
+                          )}
+                        </div>
+                        {(epic.startDate || epic.endDate) && (
+                          <span className="item-due-date">
+                            <span className="material-icons">event</span>
+                            {epic.startDate && formatDate(epic.startDate)}
+                            {epic.startDate && epic.endDate && ' - '}
+                            {epic.endDate && formatDate(epic.endDate)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                  {items.length === 0 && (
+                    <div className="empty-column">
+                      <span className="material-icons">inbox</span>
+                      <p>No epics</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
       ) : (
         <div className="kanban-board">
           {columns.map(column => (
-            <div 
-              key={column.id} 
+            <div
+              key={column.id}
               className={`kanban-column ${draggedOverColumn === column.id ? 'drag-over' : ''}`}
               onDragOver={(e) => handleDragOver(e, column.id)}
               onDragLeave={handleDragLeave}
