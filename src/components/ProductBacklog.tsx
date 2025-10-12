@@ -114,6 +114,7 @@ const ProductBacklog: React.FC = () => {
   });
   const [editModeStoryIndex, setEditModeStoryIndex] = useState<number | null>(null);
   const [editModeExpandedStories, setEditModeExpandedStories] = useState<Set<number>>(new Set());
+  const [modifiedStoryIds, setModifiedStoryIds] = useState<Set<number>>(new Set()); // Track which stories have been modified
 
   // Search and filter state
   const [searchTerm, setSearchTerm] = useState('');
@@ -342,8 +343,28 @@ const ProductBacklog: React.FC = () => {
   }, []);
 
   const openViewEpicModal = async (epic: Epic) => {
-    // Epic already includes user stories from the backlog data
-    setViewingEpic({ ...epic, userStories: epic.userStories || [] });
+    // ALWAYS fetch user stories from backend for this epic (same as RoadmapPlanner)
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/v3/products/${product?.productId}/epics/${epic.id}/user-stories`,
+        {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        }
+      );
+
+      if (response.ok) {
+        const stories = await response.json();
+        setViewingEpic({ ...epic, userStories: stories });
+      } else {
+        setViewingEpic({ ...epic, userStories: [] });
+      }
+    } catch (error) {
+      console.warn('Failed to load user stories:', error);
+      setViewingEpic({ ...epic, userStories: [] });
+    }
+
     setShowViewEpicModal(true);
   };
 
@@ -352,6 +373,7 @@ const ProductBacklog: React.FC = () => {
     setViewingEpic(null);
     setIsEditingInViewModal(false);
     setEditingViewEpic(null);
+    setModifiedStoryIds(new Set()); // Clear modified stories set when closing modal
   };
 
   const startEditingInViewModal = () => {
@@ -363,12 +385,17 @@ const ProductBacklog: React.FC = () => {
       setShowEditStoryForm(false);
       setEditModeStoryIndex(null);
       setEditModeExpandedStories(new Set());
+      setModifiedStoryIds(new Set()); // Clear modified stories set when starting edit
     }
   };
 
   const cancelEditingInViewModal = () => {
     setIsEditingInViewModal(false);
     setEditingViewEpic(null);
+    setEditModeUserStories([]);
+    setShowEditStoryForm(false);
+    setEditModeStoryIndex(null);
+    setModifiedStoryIds(new Set()); // Clear modified stories set when canceling
     setError('');
   };
 
@@ -412,7 +439,7 @@ const ProductBacklog: React.FC = () => {
   };
 
   const saveEditedViewEpic = async () => {
-    if (!editingViewEpic || !editingViewEpic.name.trim() || !editingViewEpic.themeId || !editingViewEpic.initiativeId) {
+    if (!editingViewEpic || !editingViewEpic.name.trim()) {
       setError('Please fill in all required fields.');
       return;
     }
@@ -421,74 +448,135 @@ const ProductBacklog: React.FC = () => {
       setSaving(true);
       setError('');
 
-      // Get description content from editor if it exists
-      let description = editingViewEpic.description;
-      if (editViewEditorRef.current) {
-        description = editViewEditorRef.current.innerHTML.trim();
-      }
-
-      // Create the epic with cleaned description and updated user stories
+      // Update epic with user stories
       const epicToSave = {
         ...editingViewEpic,
-        description: description || '',
         userStories: editModeUserStories
       };
 
-      // Save epic to backend using PUT (single epic update)
+      // Handle user story deletions
+      // Find stories that were removed (exist in original but not in current)
+      const originalStories = viewingEpic?.userStories || [];
+      const currentStoryIds = new Set(editModeUserStories.map(s => s.id).filter(id => id));
+      const deletedStories = originalStories.filter(story => story.id && !currentStoryIds.has(story.id));
+
+      // Delete removed stories (soft delete using POST)
+      if (deletedStories.length > 0) {
+        try {
+          for (const story of deletedStories) {
+            if (story.id) {
+              await fetch(
+                `${API_BASE_URL}/v3/products/${product?.productId}/user-stories/${story.id}/delete`,
+                {
+                  method: 'POST',
+                  headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                  }
+                }
+              );
+            }
+          }
+        } catch (deleteError) {
+          console.warn('Error deleting user stories:', deleteError);
+        }
+      }
+
+      // Create new user stories (those without id) and update modified existing ones
+      for (const story of editModeUserStories) {
+        try {
+          if (!story.id) {
+            // Create new story - no id means it needs to be created
+            console.log('Creating new user story:', story.title);
+            const response = await fetch(
+              `${API_BASE_URL}/v3/products/${product?.productId}/epics/${editingViewEpic.id}/user-stories`,
+              {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({
+                  title: story.title,
+                  description: story.description,
+                  acceptanceCriteria: story.acceptanceCriteria,
+                  priority: story.priority,
+                  storyPoints: story.storyPoints,
+                  status: story.status || 'Draft'
+                })
+              }
+            );
+
+            if (response.ok) {
+              console.log('Successfully created user story:', story.title);
+            } else {
+              console.error('Failed to create user story:', await response.text());
+            }
+          } else if (story.id && modifiedStoryIds.has(story.id)) {
+            // Only update existing story if it was actually modified
+            console.log('Updating modified user story:', story.id);
+            const response = await fetch(
+              `${API_BASE_URL}/v3/products/${product?.productId}/user-stories/${story.id}`,
+              {
+                method: 'PUT',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({
+                  title: story.title,
+                  description: story.description,
+                  acceptanceCriteria: story.acceptanceCriteria,
+                  priority: story.priority,
+                  storyPoints: story.storyPoints,
+                  status: story.status || 'Draft'
+                })
+              }
+            );
+
+            if (response.ok) {
+              console.log('Successfully updated user story:', story.id);
+            } else {
+              console.error('Failed to update user story:', await response.text());
+            }
+          }
+        } catch (storyError) {
+          console.warn('Error creating/updating user story:', storyError);
+        }
+      }
+
+      // Update epic using PUT endpoint (safe for single epic updates)
+      // Don't send userStories - they are managed separately via user story endpoints
+      const { userStories, ...epicWithoutStories } = epicToSave;
       const response = await fetch(`${API_BASE_URL}/v3/products/${product?.productId}/backlog/${epicToSave.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
-        body: JSON.stringify(epicToSave)
+        body: JSON.stringify(epicWithoutStories)
       });
 
       if (response.ok) {
         const savedEpic = await response.json();
+
         // Update the epic in the epics array
         const updatedEpics = epics.map(epic =>
           epic.id === savedEpic.id ? { ...epicToSave, ...savedEpic } : epic
         );
         setEpics(updatedEpics);
-        setViewingEpic({ ...epicToSave, ...savedEpic });
-
-        // Handle user story deletions
-        // Find stories that were removed (exist in original but not in current)
-        const originalStories = viewingEpic?.userStories || [];
-        const currentStoryIds = new Set(editModeUserStories.map(s => s.id).filter(id => id));
-        const deletedStories = originalStories.filter(story => story.id && !currentStoryIds.has(story.id));
-
-        // Delete removed stories
-        if (deletedStories.length > 0) {
-          try {
-            for (const story of deletedStories) {
-              if (story.id) {
-                await fetch(
-                  `${API_BASE_URL}/v3/products/${product?.productId}/user-stories/${story.id}`,
-                  {
-                    method: 'DELETE',
-                    headers: {
-                      'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
-                  }
-                );
-              }
-            }
-          } catch (deleteError) {
-            console.warn('Error deleting user stories:', deleteError);
-          }
-        }
-
-        setSuccessMessage('Epic updated successfully!');
+        setViewingEpic(epicToSave);
         setIsEditingInViewModal(false);
         setEditingViewEpic(null);
+        setEditModeUserStories([]);
+        setShowEditStoryForm(false);
+        setModifiedStoryIds(new Set()); // Clear modified stories set
 
+        setSuccessMessage('Epic updated successfully!');
         // Clear success message after 5 seconds
         setTimeout(() => setSuccessMessage(''), 5000);
       } else {
         const errorText = await response.text();
-        
+
         if (response.status === 401 || response.status === 403) {
           setError('Authentication expired. Please refresh the page and log in again.');
         } else if (response.status === 500) {
@@ -762,7 +850,7 @@ const ProductBacklog: React.FC = () => {
     if (editModeNewUserStory.title.trim()) {
       const storyToAdd: UserStory = {
         ...editModeNewUserStory,
-        id: Date.now(),
+        // Do NOT set id for new stories - no id means it needs to be created
         displayOrder: editModeUserStories.length
       };
 
@@ -810,11 +898,17 @@ const ProductBacklog: React.FC = () => {
   const updateEditModeEditingUserStory = useCallback(() => {
     if (editModeStoryIndex !== null && editModeNewUserStory.title.trim()) {
       const updatedStories = [...editModeUserStories];
+      const storyId = editModeUserStories[editModeStoryIndex].id;
       updatedStories[editModeStoryIndex] = {
         ...editModeNewUserStory,
-        id: editModeUserStories[editModeStoryIndex].id
+        id: storyId
       };
       setEditModeUserStories(updatedStories);
+
+      // Mark story as modified if it has an ID (existing story)
+      if (storyId) {
+        setModifiedStoryIds(prev => new Set(prev).add(storyId));
+      }
 
       // Reset form
       setEditModeNewUserStory({
@@ -1776,69 +1870,16 @@ const ProductBacklog: React.FC = () => {
               <div className="epic-form">
                 <div className="form-row-three">
                   <div className="form-group">
-                    <label>Theme{isEditingInViewModal && ' *'}</label>
-                    {isEditingInViewModal && editingViewEpic ? (
-                      <select
-                        value={editingViewEpic.themeId}
-                        onChange={(e) => updateEditingViewEpic('themeId', e.target.value)}
-                        className="epic-theme-select"
-                        required
-                      >
-                        <option value="">Select Theme</option>
-                        {availableThemes.map((theme) => (
-                          <option key={theme.id} value={theme.id}>
-                            {theme.name}
-                          </option>
-                        ))}
-                      </select>
-                    ) : (
-                      <div className="view-field">
-                        {viewingEpic.themeName || 'No theme assigned'}
-                      </div>
-                    )}
+                    <label>Theme</label>
+                    <div className="view-field">{viewingEpic.themeName || '-'}</div>
                   </div>
-                  
                   <div className="form-group">
-                    <label>Initiative{isEditingInViewModal && ' *'}</label>
-                    {isEditingInViewModal && editingViewEpic ? (
-                      <select
-                        value={editingViewEpic.initiativeId}
-                        onChange={(e) => updateEditingViewEpic('initiativeId', e.target.value)}
-                        className="epic-initiative-select"
-                        required
-                      >
-                        <option value="">Select Initiative</option>
-                        {availableInitiatives.map((initiative) => (
-                          <option key={initiative.id} value={initiative.id}>
-                            {initiative.title}
-                          </option>
-                        ))}
-                      </select>
-                    ) : (
-                      <div className="view-field">
-                        {viewingEpic.initiativeName || 'No initiative assigned'}
-                      </div>
-                    )}
+                    <label>Initiative</label>
+                    <div className="view-field">{viewingEpic.initiativeName || '-'}</div>
                   </div>
-                  
                   <div className="form-group">
-                    <label>Track{isEditingInViewModal && ' *'}</label>
-                    {isEditingInViewModal && editingViewEpic ? (
-                      <select
-                        value={editingViewEpic.track}
-                        onChange={(e) => updateEditingViewEpic('track', e.target.value)}
-                        className="epic-track-select"
-                        required
-                      >
-                        <option value="Customer Concerns">Customer Concerns</option>
-                        <option value="Innovation">Innovation</option>
-                        <option value="Scale">Scale</option>
-                      </select>
-                    ) : (
-                      <div className="view-field">
-                        {viewingEpic.track}
-                      </div>
-                    )}
+                    <label>Track</label>
+                    <div className="view-field">{viewingEpic.track || '-'}</div>
                   </div>
                 </div>
                 
@@ -1863,81 +1904,17 @@ const ProductBacklog: React.FC = () => {
                 <div className="form-group">
                   <label>Description</label>
                   {isEditingInViewModal && editingViewEpic ? (
-                    <div className="rich-text-editor">
-                      <div className="rich-text-toolbar">
-                        <select
-                          onChange={(e) => execCommand('fontSize', e.target.value)}
-                          className="toolbar-select"
-                          title="Font Size"
-                          defaultValue="3"
-                        >
-                          <option value="1">Small</option>
-                          <option value="2">Smaller</option>
-                          <option value="3">Normal</option>
-                          <option value="4">Medium</option>
-                          <option value="5">Large</option>
-                          <option value="6">Larger</option>
-                          <option value="7">Largest</option>
-                        </select>
-                        <div className="toolbar-separator"></div>
-                        <button
-                          type="button"
-                          onClick={() => execCommand('bold')}
-                          className="toolbar-btn"
-                          title="Bold"
-                        >
-                          <strong>B</strong>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => execCommand('italic')}
-                          className="toolbar-btn"
-                          title="Italic"
-                        >
-                          <em>I</em>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => execCommand('underline')}
-                          className="toolbar-btn"
-                          title="Underline"
-                        >
-                          <u>U</u>
-                        </button>
-                        <div className="toolbar-separator"></div>
-                        <button
-                          type="button"
-                          onClick={() => execCommand('insertUnorderedList')}
-                          className="toolbar-btn"
-                          title="Bullet List"
-                        >
-                          <span className="material-icons">format_list_bulleted</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => execCommand('insertOrderedList')}
-                          className="toolbar-btn"
-                          title="Numbered List"
-                        >
-                          <span className="material-icons">format_list_numbered</span>
-                        </button>
-                      </div>
-                      <div
-                        ref={editViewEditorRef}
-                        contentEditable
-                        className="epic-description-editor"
-                        onInput={handleEditViewRichTextChange}
-                        onBlur={handleEditViewRichTextBlur}
-                        data-placeholder="Epic description (optional) - use the toolbar above to format text"
-                        suppressContentEditableWarning={true}
-                      />
-                    </div>
+                    <textarea
+                      value={editingViewEpic.description}
+                      onChange={(e) => updateEditingViewEpic('description', e.target.value)}
+                      className="epic-description-input"
+                      placeholder="Enter epic description"
+                      rows={4}
+                    />
                   ) : (
                     <div className="view-field epic-description-view">
                       {viewingEpic.description ? (
-                        <div 
-                          dangerouslySetInnerHTML={{ __html: viewingEpic.description }}
-                        />
+                        <div dangerouslySetInnerHTML={{ __html: viewingEpic.description }} />
                       ) : (
                         'No description provided'
                       )}
@@ -2204,7 +2181,7 @@ const ProductBacklog: React.FC = () => {
             <div className="product-backlog-modal-footer">
               {isEditingInViewModal ? (
                 <div style={{ display: 'flex', gap: '12px' }}>
-                  <button 
+                  <button
                     onClick={cancelEditingInViewModal}
                     className="btn-cancel"
                     disabled={saving}
@@ -2212,9 +2189,9 @@ const ProductBacklog: React.FC = () => {
                     <span className="material-icons">close</span>
                     Cancel
                   </button>
-                  <button 
+                  <button
                     onClick={saveEditedViewEpic}
-                    disabled={saving || !editingViewEpic?.name.trim() || !editingViewEpic?.themeId || !editingViewEpic?.initiativeId}
+                    disabled={saving || !editingViewEpic?.name.trim()}
                     className="modal-btn-primary"
                   >
                     <span className="material-icons">{saving ? 'hourglass_empty' : 'save'}</span>
@@ -2223,33 +2200,19 @@ const ProductBacklog: React.FC = () => {
                 </div>
               ) : (
                 <div style={{ display: 'flex', gap: '12px' }}>
-                  <button 
-                    onClick={() => {
-                      if (viewingEpic) {
-                        deleteEpic(viewingEpic.id);
-                      }
-                    }}
-                    className="btn-delete"
-                    disabled={deletingEpicId === viewingEpic?.id}
-                  >
-                    <span className="material-icons">
-                      {deletingEpicId === viewingEpic?.id ? 'hourglass_empty' : 'delete'}
-                    </span>
-                    Delete
-                  </button>
                   <button
-                    onClick={startEditingInViewModal}
-                    className="edit-mode-btn"
-                  >
-                    <span className="material-icons">edit</span>
-                    Edit
-                  </button>
-                  <button 
                     onClick={closeViewEpicModal}
                     className="btn-close"
                   >
                     <span className="material-icons">check</span>
                     Close
+                  </button>
+                  <button
+                    onClick={startEditingInViewModal}
+                    className="modal-btn-primary"
+                  >
+                    <span className="material-icons">edit</span>
+                    Edit
                   </button>
                 </div>
               )}
